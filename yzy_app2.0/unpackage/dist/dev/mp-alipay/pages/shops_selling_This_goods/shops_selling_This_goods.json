@@ -1,0 +1,9 @@
+{
+  "pullRefresh": false,
+  "usingComponents": {
+    "uni-popup": "/uni_modules/uni-popup/components/uni-popup/uni-popup",
+    "uni-tag": "/uni_modules/uni-tag/components/uni-tag/uni-tag",
+    "goods-card": "/components/goods/goods_card",
+    "shop-card": "/components/shop/shop_card"
+  }
+}

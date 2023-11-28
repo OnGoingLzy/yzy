@@ -1,0 +1,196 @@
+<template>
+	<view>
+		<!-- 顶部七天日期 -->
+		<view class="date-container">
+			<view
+				v-for="(day, index) in sevenDays"
+				:key="index"
+				class="date-item"
+				@click="selectDay(index)"
+				:class="{ 'selected': selectedIndex === index }"
+			>		
+				<text class="day">{{ day.day }}</text>
+				<text class="date">{{ day.date }}</text>
+			  </view>
+		</view>
+		
+		<view style="width: 96vw;padding:2vw">
+			<view v-for="(item,i) in hospitalList" :key="i" class="hospital-card">
+				<view style="	display: flex;">
+					<view class="left-box">
+						<image :src="item.hospitalImgId? 'http://images.yndzyf.com/getimage.ashx?mlszh='+item.hospitalImgId:defaultPic" style="width: 20vw;height: 20vw;border-radius: 10px;" mode="aspectFill"></image>
+					</view>
+					<view class="right-box">
+						<view>
+							<text style="font-weight: bold;">{{item.hospitalName}}</text>
+						</view>
+						<view style="display: flex;">
+							<view style="display: flex;align-items: center;">
+								<image src="../../static/icon/location.svg" style="width: 16px;height: 16px;"></image>
+							</view>
+							<view class="location-box" @click="toLocation(item.longitude,item.latitude,item.hospitalName)">
+								<text style="color: gray;">{{item.location}}</text>
+							</view>
+							
+						</view>
+					</view>
+				</view>
+				<view style="display: flex; /* 使用 Flexbox 布局 */justify-content: space-between; /* 平均分配子元素 */">
+					<view style="flex: 1;">
+						<text v-text="selectedDate" style="color: #1296DB;"></text>
+					</view>
+					<view style="flex: 1;  display: flex;justify-content: flex-end; /* 子元素中的元素右对齐 */">
+						<view class="yy-button" @click="toAppointment(item)">预约</view>
+					</view>
+				</view>
+			</view>
+		</view>
+		
+	</view>
+</template>
+
+<script>
+	import request from '@/common/api/request.js'
+	export default {
+		data() {
+			return {
+				// 七天日期数据源
+				defaultPic: 'https://img3.doubanio.com/f/movie/8dd0c794499fe925ae2ae89ee30cd225750457b4/pics/movie/celebrity-default-medium.png',
+				sevenDays: [],
+				selectedIndex: 0,
+				selectedDate: null,
+				hospitalList: [],
+				
+			}
+		},
+		onLoad() {
+			this.queryHospital()
+			this.generateSevenDays()
+			this.selectDay(0)
+		},
+		methods: {
+			toAppointment(hospital){
+				if (!uni.getStorageSync("phone")){
+					this.toAuthorizePhone()
+					return
+				}
+				var that = this
+				uni.navigateTo({
+					url:"/subPackage_appointment/appointment/submit_appointment?hospital="+encodeURIComponent(JSON.stringify(hospital))+'&date='+encodeURIComponent(JSON.stringify(that.selectedDate))
+				})
+				
+				
+			},
+			toLocation(longitude,latitude,name){
+				uni.openLocation({
+					latitude: latitude,
+					longitude: longitude,
+					name: name,
+				})
+			},
+			selectDay(index) {
+				const today = new Date();
+				const currentYear = today.getFullYear();
+			  this.selectedIndex = index;
+			  this.selectedDate = currentYear+'-'+this.sevenDays[index].date+'/'+this.sevenDays[index].day;
+			},
+			// 生成七天日期和星期几
+			generateSevenDays() {
+			  const days = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+			  const today = new Date();
+		
+			  for (let i = 0; i < 7; i++) {
+			    const date = new Date(today);
+			    date.setDate(today.getDate() + i);
+			    const dayOfWeek = days[date.getDay()];
+			    const formattedDate = `${date.getMonth() + 1}-${date.getDate()}`;
+		
+			    this.sevenDays.push({ date: formattedDate, day: dayOfWeek });
+			  }
+			},
+			async queryHospital(){
+				const url = '/api/appointment/queryHospital';
+				const method = 'POST';
+				const data = {
+					openid: uni.getStorageSync("openid"),
+					phone: uni.getStorageSync("phone"),
+				};
+				try {
+					const response = await request('yzy_app', url, method, data);
+					console.log(response)
+					if(response.data.flag==99){
+						
+						this.hospitalList = response.data.data
+					}
+					else{
+						
+					}
+				} catch (error) {
+					console.log(error);
+				}
+			}
+		}
+	}
+</script>
+
+<style lang="scss">
+.yy-button{
+	border-radius: 10px;
+	width: 80px;
+	text-align: center;
+	background: #1296DB;
+	color: #fff;
+}	
+.location-box{
+	line-height: 16px;
+	overflow: hidden;
+	word-break: break-all; /* break-all(允许在单词内换行。) */
+	text-overflow: ellipsis; /* 超出部分省略号 */
+	display: -webkit-box; /** 对象作为伸缩盒子模型显示 **/
+	-webkit-box-orient: vertical; /** 设置或检索伸缩盒对象的子元素的排列方式 **/
+	-webkit-line-clamp: 3; /** 显示的行数 **/
+}	
+.left-box{
+	max-width: 25%;
+	
+}
+.right-box{
+	margin-left: 10px;
+	max-width: 75%;
+}	
+.hospital-card	{
+	width: 92vw;
+	padding: 2vw;
+	background: #fff;
+	border-radius: 10px;
+	margin-bottom: 10px;
+}
+.date-container {
+  background: #1296DB;
+  display: flex;
+  justify-content: space-between;
+  padding: 10px;
+}
+
+.date-item {
+  text-align: center;
+  line-height: 19px;
+  border: 2px solid transparent; /* 初始状态无边框 */
+  border-radius: 10px; /* 圆角效果 */
+}
+
+.date {
+  font-size: 15px;
+  color: #fff;
+}
+.date-item.selected {
+  border-color: #fff; /* 点击后显示黑色边框 */
+}
+.day {
+  font-size: 14px;
+  color: #fff;
+}
+page{
+	background: #F2F3F5;
+}
+</style>

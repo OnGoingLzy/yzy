@@ -1,0 +1,47 @@
+
+.button-goto-maintain {
+	background-color: #1296DB !important;
+}
+.example {
+	padding: 15px;
+	background-color: #fff;
+	border-radius: 15px;
+	width: 90vw;
+	height: 700rpx;
+}
+.path-list {
+	padding-left: 20rpx;
+	border-radius: 30rpx;
+}
+.path-item {
+	padding: 30rpx 20rpx;
+	margin: 20rpx;
+	border: 1rpx solid #1296DB;
+	border-radius: 10px;
+	background-color: #fff;
+	color: #fff;
+	box-shadow: 2px -1px 10px 0.5px rgba(0, 0, 0, 0.2);
+}
+.item-main {
+	display: flex;
+	align-items: center;
+}
+.active {
+	padding: 0 3rpx;
+	border: 1px solid #1296DB;
+	color: #1296DB;
+	border-radius: 20rpx;
+	font-size: 16rpx;
+}
+.item-name-popup {
+	padding-right: 10rpx;
+	font-size: 28rpx;
+	color: #000;
+}
+.item-name-phone {
+	padding-left: 20rpx;
+}
+.item-name-name {
+	padding-left: 20rpx;
+}
+

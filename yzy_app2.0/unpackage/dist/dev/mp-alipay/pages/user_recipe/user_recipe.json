@@ -1,0 +1,7 @@
+{
+  "defaultTitle": "我的处方",
+  "pullRefresh": true,
+  "usingComponents": {
+    "recipe-card": "/components/recipe/recipe_card"
+  }
+}

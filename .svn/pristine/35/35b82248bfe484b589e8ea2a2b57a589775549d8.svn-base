@@ -1,0 +1,63 @@
+<template>
+	<view>
+		<!-- 顶部的流程导航 -->
+		<view class="title-navi">
+			<text class="f-active-color">点击问诊开方</text>
+			<image class="title-navi-next" src="../../static/icon/next_step_filled.svg"></image>
+			<text class="f-active-color">问诊信息</text>
+			<image class="title-navi-next" src="../../static/icon/next_step_filled.svg"></image>
+			<text class="f-active-color">医生开方</text>
+			<image class="title-navi-next" src="../../static/icon/next_step_filled.svg"></image>
+			<text>下单购药</text>
+		</view>
+		<view>
+			<web-view :src="url" @message="bindMessage"></web-view>
+		</view>
+	</view>
+</template>
+
+<script>
+	export default {
+		data() {
+			return {
+				url: '',
+				action: '',
+				clinicId: ''
+			}
+		},
+		methods: {
+			bindMessage(e) {
+				this.action = e.detail.data[0].action;
+				this.clinicId = e.detail.data[0].clinicId;
+				if (this.action === "orderEnd") {
+					uni.$emit('orderEnd', {
+						'action': this.action,
+						'clinicId': this.clinicId
+					});
+				}
+			}
+		},
+		onLoad(query) {
+			console.log('Entered new page!');
+			const urlObj = JSON.parse(decodeURIComponent(query.urlObj));
+			console.log(urlObj);
+			this.url = urlObj.url + 'hosId=' + urlObj.hosId + '&accessToken=' + urlObj.accessToken;
+		}
+
+	}
+</script>
+
+<style>
+	.title-navi {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 10rpx 26rpx 20rpx 26rpx;
+		background-color: white;
+	}
+
+	.title-navi-next {
+		width: 20rpx;
+		height: 20rpx;
+	}
+</style>

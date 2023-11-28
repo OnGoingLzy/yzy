@@ -1,0 +1,7 @@
+{
+  "usingComponents": {
+    "uni-transition": "/uni_modules/uni-transition/components/uni-transition/uni-transition"
+  },
+  "component": true,
+  "styleIsolation": "apply-shared"
+}

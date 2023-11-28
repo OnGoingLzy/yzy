@@ -1,0 +1,1151 @@
+<template>
+	<view>
+		<!-- 悬浮按钮和按钮中的元素开始 -->
+
+		<!-- <view>
+  		<uni-fab
+  			:pattern="pattern"
+  			:content="content"
+  			:horizontal="horizontal"
+  			:vertical="vertical"
+  	    :popMenu="popMenu"
+  	    @trigger="trigger"
+  		></uni-fab>
+  	</view> -->
+
+		<!-- 通知弹出层 -->
+		<uni-popup ref="popup" type="center">
+			<view
+				style="background: white;border-radius: 3vw;max-height: 70vh;;max-width: 80vw;padding: 15px;overflow-y: scroll;">
+				<view style="">
+					<view style="text-align: center;">
+						<text style="font-weight: bold;font-size: 18px;">云找药焕新</text>
+					</view>
+					<view>
+						<text>亲爱的 [云找药] 用户：
+							我们很高兴向您宣布一项重大升级，2023年9月6号，为了让您可以享受更便捷和全面的购物体验，我们将对云找药平台进行升级，以满足您的需求。如果您有任何问题或需要帮助，我们的客户支持团队随时为您提供支持。请联系我们
+						</text>
+						<text style="color: #409EFF;" @click="callPhone('0871-65955764')">
+							[0871-65955764]
+						</text>
+					</view>
+					<view style="bottom: 5px;align-items: center;width: 80vw;margin-top: 10px;">
+						<button type="primary" @click="confirmNotice()"
+							style="background: #409EFF;border-radius: 50px;">我已了解</button>
+					</view>
+
+				</view>
+			</view>
+		</uni-popup>
+
+		<!-- 人工客服区域显示和隐藏开始 -->
+		<view :hidden="contactHidden" class="popup_content">
+			<view class="popup_title">是否发起人工客服</view>
+			<button open-type="contact" type="primary" plain="false" class="bt_contact">联系客服</button>
+		</view>
+		<view class="popup_overlay" :hidden="contactHidden" @click="hideContact()"></view>
+		<!-- 人工客服区域显示和隐藏结束 -->
+
+		<!-- 推广码区域显示和隐藏开始 -->
+
+		<view :hidden="promotionCodeHidden" class="promotionCode_content">
+			<!--  			 <view class="popup_title">这是您的专属推广码</view> 
+ -->
+			<image :src="promotionCodeUrl" class="promotionCodeImage"></image>
+
+
+		</view>
+		<view class="popup_overlay" :hidden="promotionCodeHidden" @click="hideCode()"></view>
+
+		<!-- 推广码区域显示和隐藏结束 -->
+
+		<!-- 悬浮按钮和按钮中的元素结束 -->
+
+		<!--
+		 <view class="title_text">
+			<text class="kh ts">云南省</text>
+			<text class="kh ">患者的一站式</text>
+			<text class="kh ">找药平台</text>
+		</view> 
+		-->
+
+		<!-- 2023.5.6新搜索ui -->
+		<view class="search-container">
+			<image src="http://images.yndzyf.com/getimage.ashx?mlszh=21950591"
+				style="width: 178px;height: 78px;border-radius: 20%;object-fit: cover;"></image>
+			<view class="search-input">
+				<input type="text" class="search-text" @input="inputData" v-model="inputSpmc"
+					placeholder="药名、品牌、厂家、症状" />
+				<view style="height: 100%;width: 40px;text-align: center;" @tap="clearSpmc()">
+					<text class="voice-icon">×</text>
+				</view>
+				<view>
+					<button @tap="getGoodsList2()"
+						style="height: 30px; max-width: 20vw; border-radius: 30px; background-color: #409EFF; color: #fff; font-size: 14px;display: flex;justify-content: center;">
+						<text style="line-height: 30px;">搜索</text>
+					</button>
+				</view>
+
+			</view>
+			<!-- <view class="search-buttons">
+	      <text class="button"  @tap="getGoodsList2()">&#x1F50D; 搜索</text>
+	    </view> -->
+		</view>
+
+		<!-- 2023.5.6淘汰搜索框 -->
+		<!-- <view class="exact_search"> -->
+		<!-- <view class="bar_code"> -->
+		<!-- <view class="bar_code_bt" @click="scanbar">        
+          <uni-icons type="scan" size="30" color="#1296DB"></uni-icons>
+        <text>扫码找药</text>
+        </view> -->
+		<!-- </view>		 -->
+		<!-- 搜索form -->
+		<!-- <view class="form_exact_search"> -->
+		<!-- <view class="form_exact_search"> -->
+		<!-- <form @submit="formSubmit" @reset="formReset"> -->
+		<!-- <view>
+						<text class="describe">药品名称 :</text>
+					</view> -->
+
+		<!-- 					<view class="input_message">
+					
+						<input class="uni-input" placeholder="请输入药品名(支持模糊查询)搜索" placeholder-style="color:#A8A8A8"
+							@input="inputData" name="spmc" v-model="inputSpmc" />
+					</view> -->
+
+		<!-- <view>
+						<text class="describe">生产企业 :</text>
+					</view>
+					<view class="input_message">
+						<input class="placeholder" placeholder="请输入药品生产企业关键词搜索" placeholder-style="color:#A8A8A8"
+							name="sccs" v-model="inputSccs" />
+					</view> -->
+		<!-- 					<view class="bt">
+						<button form-type="reset" class="bt_reset">清空</button> -->
+		<!-- <button form-type="submit" class="bt_search">搜索</button> -->
+		<!-- <button @tap="getGoodsList2()" class="bt_search">搜索</button>
+					</view> -->
+		<!-- </form> -->
+		<!-- </view>
+		</view> -->
+
+		<!--    搜索历史 -->
+
+		<!-- 2023-06-06 后禹谦 添加注释：暂时注释热销品种，先写死数据到前台，后面再考虑放开 -->
+		<!-- <view class="history-box">
+			<view class="history-title">
+				<text>热销品种</text>
+				<image class="fire" src="/static/fire.png"></image>
+			</view>
+			<view class="history-list">
+				<uni-tag :text="item" v-for="(item, i) in hotList" :key="i" @click="goHotspxx(item)"></uni-tag>
+			</view>
+		</view> -->
+
+		<view class="history-box">
+			<view class="history-title">
+				<text>热门搜索</text>
+				<image class="fire" src="/static/icon/fire.png"></image>
+			</view>
+			<view class="history-list" id="hot-list">
+				<uni-tag :text="item" v-for="(item, i) in hotSearchLists" :key="i" class="tag-container" @click="goHotspxx(item)"
+				custom-style="background-color: #f4f4f4; border-color: #fcfdff; color: #1b1b1b;"></uni-tag>
+			</view>
+		</view>
+
+
+		<view class="history-box">
+			<view class="history-title">
+				<text>搜索历史</text>
+				<uni-icons type="trash" size="17" @click="clean"></uni-icons>
+			</view>
+			<!-- 列表区域 -->
+			<view class="history-list">
+				<uni-tag :text="item" v-for="(item, i) in historyList" :key="i" @click="gotoGoodsList(item)"></uni-tag>
+			</view>
+		</view>
+		<!-- <button type="default" open-type="contact">联系客服</button> -->
+	</view>
+	<!-- <view class="subtitle">
+      <text >按分类找药</text>
+    </view>
+    <!-- 分类导航区域 -->
+	<!-- <view class="nav-list">
+       <view class="nav-item" v-for="(item, i) in navList" :key="i"  @click="navClickHandler(item)">
+         <image :src="item.image_src" class="nav-img"></image>
+       </view>
+    </view> -->
+
+	<!-- 		<view class="search-box">
+			<my-search @click="gotoSearch"></my-search>
+		</view> -->
+	<!-- 		<view class="goods-list">
+			<view v-for="(goods, i) in goodsList" @click="gotoDetail(goods)" :key="i">
+				<my-goods :goods="goods"></my-goods>
+			</view>
+		</view> -->
+	</view>
+</template>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+	//import FloatBallMixin from '../../uni_modules/css-float-ball/components/css-float-ball/mixin'
+
+	export default {
+
+		//name: 'WorkBench',
+		// pages.json 中 easycom 为自动读取uni_modules内插件时，可省略
+		// components:{
+		//   CssFloatBall,
+		//   Ball,
+		// },
+		//mixins:[FloatBallMixin],
+
+		data() {
+			return {
+				// 新加
+
+				searchValue: '123123',
+
+				show: this.showInit,
+				showSync: false,
+				searchVal: this.searchValInit,
+				isShowInit: true,
+				defS: JSON.parse(JSON.stringify(uni.getStorageSync('dSv'))),
+				reobj: {
+					'spcxm': '',
+					pageIndex: 1,
+					pageSize: 20,
+					drugsIdlist: [],
+				},
+				timer: null,
+				kw: '',
+				// 搜索的结果列表
+				searchResults: [],
+				// 搜索历史的数组
+				historyList: [],
+				hotList: [],
+
+				// 2023-06-06 后禹谦 先把热门搜索写死在前台界面上。后面再考虑删除或者修改成原来的内容
+				hotSearchLists: ['艾滋阻断必妥维', '阳康后免疫调节', '夏季清肝去火', '中风昏迷', '老年人骨质疏松', '壮阳补肾', '糖尿病新药华堂宁', '瑞百安', '密固达',
+					'日达仙'],
+
+				isloading: true,
+				time: 1,
+				times: 2,
+				total: '',
+				show: '',
+				tg_czy: '', //推广员联系电话
+
+				goodsList: [],
+				total: 0,
+				// 节流阀  控制禁止频繁发起请求（上一次请求未完成则发起下一次请求）
+				isloading: false,
+				code: '',
+				openid: '',
+				times: 2,
+				show: '',
+				inputSpmc: '',
+				inputSccs: '',
+
+				contactHidden: true, //控制人工客服提示框的显示和隐藏，默认隐藏
+
+				promotionCodeHidden: true, //控制推广码显示和隐藏，默认隐藏
+
+				promotionCodeUrl: 'data:image/jpeg;base64,', //二维码图片二进制流，base64编码
+				//promotionCodeUrl: '',
+
+				baseUrl: '',
+
+				// 1. 分类导航的数据列表
+				navList: [{
+						"name": "新药",
+						"image_src": "../../static/xy.png",
+						"open_type": "switchTab",
+						"navigator_url": "/pages/category/index"
+					},
+					{
+						"name": "特药",
+						"image_src": "../../static/ty.png"
+					},
+					{
+						"name": "日常用药",
+						"image_src": "../../static/rcyy.png"
+					},
+					{
+						"name": "全部分类",
+						"image_src": "../../static/qbfl.png"
+					}
+				],
+			};
+		},
+		//初始化参数
+		onLoad(options) {
+			// this.$refs.popup.open('center')
+			//新加
+			this.time = 1;
+			uni.setStorageSync('pagelx', '推广码');
+			uni.setStorageSync('dS', '');
+			console.log(uni.getStorageSync('kw'));
+			this.historyList = JSON.parse(uni.getStorageSync('kw') || '[]');
+			if (uni.getStorageSync('dSv')) {
+				this.input(uni.getStorageSync('dS'));
+			}
+
+			//获取数据库中的热销品种
+			uni.request({
+				url: 'https://appletservice.dyb.yn.cn/api/GetHotmedicine',
+				//url:'',
+				method: 'POST',
+				header: {
+					"Content-Type": "application/json",
+					"X-Ca-Key": "wxe7c826a1a5e00055",
+					"X-Service-Method": "GetHotmedicine"
+				},
+				data: {
+					"lxdh": uni.getStorageSync("lxdh")
+				},
+				//成功后的操作
+				success: ress => {
+					//console.log(ress.data.split(','));
+					this.hotList = Array.from(ress.data.split(','))
+					// this.hotList=ress.data         
+					// console.log("hyq" + uni.getStorageSync("lxdh"));
+				}
+			});
+
+
+			//结束
+
+
+			this.times = 2
+			this.reobj.spcxm = options.spcxm || ''
+			//this.getGoodsList(this.reobj.spcxm)
+
+			//console.log('1:'+uni.$http.baseUrl);
+
+			//this.baseUrl = uni.$http.baseUrl;
+
+			//二维码参数，推广人的手机号
+			console.log('推广码' + options.scene)
+			console.log('推广码2' + uni.getStorageSync('tg_czy'))
+			if (options.scene && options.scene !== '' && options.scene !== null) {
+				console.log('有推广码')
+				const scene = decodeURIComponent(options.scene)
+				this.tg_czy = scene;
+				uni.setStorageSync('tg_czy', scene)
+			} else {
+				if (uni.getStorageSync('tg_czy')) {
+					console.log('无推广码1')
+					uni.setStorageSync('tg_czy', '')
+				} else {
+					console.log('有推广码1')
+					// uni.setStorageSync('tg_czy', '')
+				}
+			}
+			console.log('推广码3' + uni.getStorageSync('tg_czy'))
+		},
+
+		methods: {
+			confirmNotice() {
+				this.$refs.popup.close()
+			},
+			inputData(e) {
+				this.inputSpmc = e.detail.value
+			},
+			//2023.5.5搜索函数 已淘汰
+			getGoodsList() {
+				let spcxm = this.inputSpmc;
+				this.kw = spcxm;
+				console.log("查询:" + spcxm)
+				this.saveSearchHistory();
+				if (spcxm == '') {
+					let dS = {
+						drugsList: [],
+						spcxm: '',
+					}
+					//新加
+
+					//结束      
+					uni.setStorageSync('dS', dS)
+					// uni.setStorageSync('dSv', dS.drugsList)
+					//页面跳转
+					uni.navigateTo({
+						url: '/pages/goods_order_search/goods_order_search'
+					})
+				}
+				uni.request({
+					// url: 'http://localhost:8080/api/select', // 请求的url
+					url: 'http://47.120.7.226/api/select', // 请求的url
+					method: 'GET', // 请求的方法
+					data: { // 请求的参数
+						searchName: spcxm,
+					},
+					success: function(res) { // 请求成功的回调函数
+
+						console.log(res.data.drugList);
+						// this.reobj.drugsIdlist = res.data
+						//发起搜索请求
+						let dS = {
+							drugsList: res.data.drugList,
+							spcxm: spcxm,
+						}
+						//新加
+
+						//结束      
+						uni.setStorageSync('dS', dS)
+						// uni.setStorageSync('dSv', dS.drugsList)
+						//页面跳转
+						uni.navigateTo({
+							url: '/pages/goods_order_search/goods_order_search'
+						})
+
+					},
+					fail: function(res) { // 请求失败的回调函数
+						console.log(res.errMsg);
+					}
+				})
+			},
+			// 2023.5.6搜索使用的函数
+			getGoodsList2() {
+
+				let spcxm = this.inputSpmc;
+				this.kw = spcxm;
+				console.log("查询:" + spcxm)
+				// if(spcxm==''){
+				// 	let dS = {
+				// 		drugsList: [],
+				// 		spcxm: '',
+				// 	}
+				// 	//新加		
+				// 	//结束      
+				// 	uni.setStorageSync('dS', dS)
+				// 	// uni.setStorageSync('dSv', dS.drugsList)
+				// 	//页面跳转
+				// 	uni.navigateTo({
+				// 		url: '/pages/goods_order_search/goods_order_search'
+				// 	})
+				// }
+				let dS = {
+					spcxm: this.inputSpmc,
+				}
+				uni.setStorageSync('dS', dS)
+				// uni.setStorageSync('dSv', dS.drugsList)
+				//页面跳转
+				this.saveSearchHistory();
+				uni.navigateTo({
+					url: '/pages/goods_order_search/goods_order_search'
+				})
+
+			},
+			//热销品种直接搜索 
+			goHotspxx(spmc) {
+				//2023-03-20注释：为了解决新用户点击热销的tag无反应的bug
+				// let dS = {
+				// 	value: spmc
+				// }
+				// this.kw = spmc   
+				// uni.setStorageSync('dS', dS)
+				// uni.setStorageSync('dSv', dS.value)
+				// uni.navigateTo({
+				// 	url: '/pages/goods_order_search/goods_order_search'
+				// })
+
+				//2023-03-20注释：注释上面部分之后新修改的下面部分
+				// this.isShowInit = true
+				// let dS = {
+				// 	value: spmc,
+				// }
+				// console.log(dS.value)
+				// this.inputSpmc = spmc;
+				// this.kw = spmc;
+				// this.saveSearchHistory();
+				// uni.setStorageSync('dS', dS);
+				// uni.setStorageSync('dSv', dS.value);
+				// uni.navigateTo({
+				// 	url: '/pages/goods_order_search/goods_order_search'
+				// });
+
+				//2023-5-4 使用搜索服务
+				this.isShowInit = true
+				this.inputSpmc = spmc;
+				this.kw = this.inputSpmc;
+				this.saveSearchHistory();
+				this.getGoodsList2();
+			},
+
+			callPhone(phone) {
+				// 使用正则表达式匹配电话号码
+				const phoneNumberMatches = phone.match(/\d+-?\d+/g);
+
+				// 提取匹配到的数字部分作为电话号码
+				if (phoneNumberMatches && phoneNumberMatches.length > 0) {
+					const phoneNumber = phoneNumberMatches[0];
+					console.log("提取到的电话号码：" + phoneNumber);
+					uni.makePhoneCall({
+						phoneNumber: phoneNumber //仅为示例
+					});
+				} else {
+					console.log("未找到电话号码");
+				}
+
+			},
+
+
+
+			//点击搜索框前往搜索页
+			gotoSearch() {
+
+				uni.navigateTo({
+					url: '/pages/goods_order_search/goods_order_search'
+				})
+			},
+			//点击药品后进入药品详情页
+			gotoDetail(goods) {
+
+				uni.navigateTo({
+					url: '/subpkg/goods_detail/goods_detail?spdm=' + goods.spdm
+				})
+			},
+			// nav-item 项被点击时候的事件处理函数
+			navClickHandler(item) {
+				// console.log("进来了");
+				let dS = {
+					value: item.name
+				}
+				uni.setStorageSync('dS', dS)
+				uni.setStorageSync('dSv', dS.value)
+				uni.navigateTo({
+					url: '/pages/goods_order_search/goods_order_search'
+				})
+			},
+
+
+			//表单提交事件 2023.5.6淘汰
+			formSubmit: function(e) {
+				// console.log('form发生了submit事件，携带数据为：' + JSON.stringify(e.detail.value))
+				//     console.log('form发生了submit事件，携带数据为：' + JSON.stringify(e.detail.value.spmc))
+				//     console.log('form发生了submit事件，携带数据为：' + JSON.stringify(e.detail.value.sccs))
+				// var formdata = e.detail.value
+				// uni.showModal({
+				// 	content: '表单数据内容：' + JSON.stringify(formdata),
+				// 	showCancel: false
+				// });
+
+				let dS = {
+					value: e.detail.value.spmc + ',' + e.detail.value.sccs
+				}
+				this.kw = e.detail.value.spmc
+				//新加
+				this.saveSearchHistory();
+				//结束      
+				uni.setStorageSync('dS', dS)
+				uni.setStorageSync('dSv', dS.value)
+				//页面跳转
+				uni.navigateTo({
+					url: '/pages/goods_order_search/goods_order_search'
+				})
+
+				// this.inputSccs='';
+				// this.inputSpmc='';
+			},
+			formReset: function(e) {
+				console.log('清空数据');
+				this.inputSccs = '';
+				this.inputSpmc = '';
+			},
+			clearSpmc() {
+				console.log('清空数据');
+				this.inputSpmc = '';
+			},
+			scanbar() {
+				// 调起条码扫描
+				console.log('进入了扫码方法');
+				uni.scanCode({
+					scanType: ['barCode'],
+					success: function(res) {
+						console.log('条码类型：' + res.scanType);
+						console.log('条码内容：' + res.result);
+
+						let dS = {
+							value: res.result
+						}
+						uni.setStorageSync('dS', dS)
+						uni.setStorageSync('dSv', dS.value)
+						uni.navigateTo({
+							url: '/pages/goods_order_search/goods_order_search'
+						})
+					}
+				});
+			},
+
+			//悬浮按钮事件
+			// fabClick() {
+			// 				// uni.showToast({
+			// 				// 	title: '点击了悬浮按钮',
+			// 				// 	icon: 'none'
+			// 				// })
+			// 			},
+
+			//悬浮按钮中的菜单事件
+			trigger(e) {
+				if (e.item.text === "客服") {
+					this.contactHidden = false; //点击后显示
+				}
+
+				if (e.item.text === "推广码") {
+
+					if (!uni.getStorageSync("lxdh")) {
+						//提示先授权手机号，才能生成推广码
+						return this.delayNavigate()
+					}
+
+					this.promotionCodeHidden = false; //点击后显示
+
+					//console.log(this.baseUrl+'/api/GetUnlimitedQRCode');
+
+
+					uni.request({
+						url: 'https://appletservice.dyb.yn.cn/api/GetUnlimitedQRCode',
+						//url:'',
+						method: 'POST',
+						header: {
+							"Content-Type": "application/json",
+							"X-Ca-Key": "wxe7c826a1a5e00055",
+							"X-Service-Method": "GetUnlimitedQRCode"
+						},
+						data: {
+							"lxdh": uni.getStorageSync("lxdh")
+						},
+						//成功后的操作
+						success: ress => {
+
+							//console.log(ress.data.data);
+
+							if (ress.data.result != -99) {
+
+								//console.log("状态成功");
+
+								this.promotionCodeUrl = this.promotionCodeUrl + ress.data.data;
+
+								// console.log(this.promotionCodeUrl);
+
+								// const userInfo = {
+								// 	"openid": uni.getStorageSync("openid"),
+								// 	"lxdh": res.data.data.phone_info.phoneNumber
+								// };
+								// uni.setStorageSync("userInfo", userInfo)
+								// uni.setStorageSync("lxdh", res.data.data.phone_info
+								// 	.phoneNumber)
+
+								//    	uni.navigateBack({
+								//    		delta:1,//返回层数，2则上上页
+								//    	})
+							}
+						}
+					});
+
+				}
+
+			},
+
+			hideContact() {
+				this.contactHidden = true; //点击其他区域后，隐藏
+			},
+
+			hideCode() {
+				this.promotionCodeHidden = true; //点击其他区域后，隐藏
+			},
+
+
+			//新加
+			input(e) {
+				this.kw = e.value
+			},
+
+			//获取推广人电话
+			delayNavigate() {
+				this.seconds = 3
+				this.showTips(this.seconds)
+				this.timer = setInterval(() => {
+					this.seconds--
+					if (this.seconds <= 0) {
+						clearInterval(this.timer)
+						uni.navigateTo({
+							url: '/subpkg/login/login',
+							// success: () => {
+							// 	settlement();
+							// }
+						})
+
+						return
+					}
+
+					this.showTips(this.seconds)
+				}, 1000)
+			},
+			// 展示倒计时的提示消息
+			showTips(n) {
+				uni.showToast({
+					icon: 'none',
+					title: '请授权后再之重新打开推广码！' + n + '秒之后自动跳转到授权页',
+					mask: true,
+					duration: 1500
+				})
+			},
+
+
+			// //存储搜索历史
+			saveSearchHistory() {
+				console.log('存储搜索历史')
+				//历史搜索关键词进行去重排序
+				const set = new Set(this.historyList)
+
+
+				if (this.kw.trim().length !== 0) {
+					set.delete(this.kw.trim())
+					set.add(this.kw.trim())
+				}
+
+				let ar = Array.from(set)
+
+				if (ar.length > 8) {
+					set.delete(ar[1])
+				}
+
+				this.historyList = Array.from(set).reverse()
+				// 对搜索历史数据，进行持久化的存储
+				uni.setStorageSync('kw', JSON.stringify(Array.from(set)))
+			},
+			// 	//清空搜索历史
+			clean() {
+				this.historyList = []
+				uni.setStorageSync('kw', '[]')
+			},
+			//点击搜索历史进行搜索
+			gotoGoodsList(kwds) {
+				this.isShowInit = true
+				// let dS = {
+				// 	value: kwds
+				// }
+				// console.log(dS.value)
+
+				this.inputSpmc = kwds
+
+				//点击搜索历史中的其中一个tag，即可实现自动搜索
+				// this.kw = kwds
+				// this.saveSearchHistory();
+				// uni.setStorageSync('dS', dS)
+				// uni.setStorageSync('dSv', dS.value)
+				// uni.navigateTo({
+				// 	url: '/pages/goods_order_search/goods_order_search'
+				// })
+				this.getGoodsList2()
+			},
+			//结束
+
+			//method结束   
+
+		},
+
+		//页面到达底部 触发更新 加载更多数据
+		// onReachBottom() {
+		// 	this.show = '正在加载中...'
+		// 	if (this.reobj.pageIndex * this.reobj.pageSize >= this.total) {
+		// 		this.show = ''
+		// 		if (this.times == 2) {
+		// 			this.times = 1
+		// 			return uni.$showMsg('数据加载完毕!')
+		// 		}
+		// 		return;
+		// 	}
+
+		// 	if (this.isloading) return
+
+		// 	// 让页码值自增+1
+		// 	this.reobj.pageIndex++
+		// 	//this.getGoodsList()
+		// 	this.getGoodsList2()
+		// },
+		//下拉刷新
+		// onPullDownRefresh() {
+		// 	// 重置关键数据
+		// 	this.reobj.pageIndex = 1
+		// 	this.total = 0
+		// 	this.isloading = false
+		// 	this.goodsList = []
+
+		// 	// 重新发起数据请求
+		// 	//this.getGoodsList1(() => uni.stopPullDownRefresh())
+		// 	this.getGoodsList2(() => uni.stopPullDownRefresh())
+		// },
+		computed: {
+			historys() {
+				// 注意：由于数组是引用类型，所以不要直接基于原数组调用 reverse 方法，以免修改原数组中元素的顺序
+				// 而是应该新建一个内存无关的数组，再进行 reverse 反转
+				return [...this.historyList].reverse()
+			}
+		}
+	}
+</script>
+
+<style lang="scss">
+	// 新搜索ui样式 2023.5.6
+	uni-tag {
+		font-size: 2rpx;
+		margin: 10rpx 10rpx 20rpx 10rpx;
+	}
+
+	/* search container */
+	.search-container {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		padding: 20px;
+	}
+
+	/* search input */
+	.search-input {
+		margin-top: 10px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		border: 1px solid #0045cf;
+		border-radius: 24px;
+		padding: 8px;
+		width: 80vw;
+	}
+
+	.search-icon {
+		font-family: "Material Icons";
+		font-size: 5vw;
+		color: #9aa0a6;
+		margin-right: 8px;
+	}
+
+	.voice-icon {
+		font-family: "Material Icons";
+		font-size: 5vw;
+		color: #9aa0a6;
+		margin-left: 8px;
+		line-height: 31px;
+	}
+
+	.search-text {
+		flex: 1;
+		border: none;
+		outline: none;
+		font-size: 4vw;
+		color: #1a1a1a;
+	}
+
+	/* search buttons */
+	.search-buttons {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		margin-top: 16px;
+	}
+
+	.button {
+		font-size: 14px;
+		color: #4d5054;
+		border: 1px solid #d6d7d8;
+		border-radius: 4px;
+		padding: 8px 16px;
+	}
+
+	.button:hover {
+		cursor: pointer;
+		background-color: #f1f3f4;
+	}
+
+
+	.tag-container {
+		position: relative;
+		display: inline-block;
+		font-size: 2rpx;
+		margin: 10rpx 10rpx 20rpx 10rpx;
+	}
+
+	.fire {
+		display: flex;
+		width: 15px;
+		height: 15px;
+	}
+
+	#hot-list {
+		margin: 5px 10rpx 20px 10rpx;
+	}
+
+	//新加
+	.history-box {
+		padding: 0 5px;
+
+		.history-title {
+			display: flex;
+			justify-content: baseline;
+			height: 40px;
+			align-items: center;
+			font-size: 15px;
+			border-bottom: 1px solid #efefef;
+		}
+
+		.history-list {
+			display: flex;
+			flex-wrap: wrap;
+			margin: 5px 10rpx 20px 10rpx;
+		}
+	}
+
+	//结束
+	.warp {
+		padding: 10px;
+	}
+
+	.button {
+		margin-bottom: 10px;
+	}
+
+	.placeholder {
+		font-size: 15px;
+		margin-left: 5px;
+	}
+
+	// @import "index";
+	// .float-ball-icon {
+	//   background-color: #FFF;
+	//   width: 128rpx;
+	//   height: 128rpx;
+	//   border-radius: 50%;
+	//   @extend .defaultFlex;
+	//   -webkit-box-shadow: 0rpx 8rpx 20rpx 8rpx rgba(204, 204, 204, 0.47);
+	//   -moz-box-shadow: 0rpx 8rpx 20rpx 8rpx rgba(204, 204, 204, 0.47);
+	//   box-shadow: 0rpx 8rpx 20rpx 8rpx rgba(204, 204, 204, 0.47);
+	// }
+
+	.title_text {
+		position: sticky;
+		top: 0;
+		z-index: 999;
+		height: 30px;
+		background-color: #005BAB;
+		// display: flex;
+		align-items: center;
+		padding: 0 10px;
+		color: #FFFFFF;
+		text-align: center;
+	}
+
+	.kh {
+		font-size: 18px
+	}
+
+	.ts {
+		color: rgb(255, 225, 52);
+
+	}
+
+	.subtitle {
+		text-align: center;
+		color: #005BAB;
+		font-size: 25px;
+		align-items: center;
+		width: 100%;
+		margin-top: 20px;
+	}
+
+	.exact_search {
+		height: 25vh;
+		background-color: #e3edf9;
+		margin: 60px 20px 0px 20px;
+		border-radius: 10px;
+	}
+
+	.form_exact_search {
+		color: #788188;
+		font-size: 20px;
+		margin: 10px 0;
+
+		.describe {
+			padding-left: 10px;
+			margin: 10px 0;
+			color: #000000;
+		}
+
+		.input_message {
+			padding-left: 10px;
+			padding-bottom: 10px;
+			margin-top: 10px;
+			margin-bottom: 20px;
+			border-bottom-style: solid;
+			border-bottom-width: 1px;
+			border-color: #c1c1c1;
+		}
+	}
+
+	.bar_code {
+		color: #1296DB;
+		font-size: 30px;
+		padding: 5px;
+
+		//display: flex;
+		// flex-flow: wrap;
+		// justify-content: right;
+
+		.bar_code_bt {
+			display: flex;
+			align-content: center;
+			justify-content: flex-end;
+		}
+	}
+
+	.bt {
+		display: flex;
+		flex-flow: wrap;
+		width: 100%;
+		font-size: 22px;
+
+		margin: 20px 0;
+
+		.bt_reset {
+			width: 30%;
+			background-color: #FFFFFF;
+			color: #788188;
+		}
+
+		.bt_search {
+			width: 30%;
+			background-color: #005BAB;
+			color: #FFFFFF;
+		}
+	}
+
+	.isShows {
+		display: flex;
+		padding-top: 5px;
+		padding-bottom: 5px;
+		align-content: center;
+		justify-content: center;
+	}
+
+	.search-box {
+		position: sticky;
+		top: 0;
+		z-index: 999;
+	}
+
+	.nav-list {
+		display: flex;
+		justify-content: space-around;
+		margin: 15px 0;
+
+		.nav-img {
+			width: 128rpx;
+			height: 140rpx;
+		}
+	}
+
+	.movableArea {
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		pointer-events: none; //设置area元素不可点击，则事件便会下移至页面下层元素
+		z-index: 999;
+
+		.movableView {
+			pointer-events: auto; //可以点击
+			width: 100rpx;
+			height: 100rpx;
+
+			image {
+				width: 100%;
+				height: 100%;
+			}
+
+			// 客服
+			.contact {
+				width: 50px;
+				height: 50px;
+				overflow: hidden;
+				position: absolute;
+				left: 0px;
+				top: 0px;
+				border-radius: 100%;
+				opacity: 0;
+			}
+
+		}
+	}
+
+
+	//客服提示框的样式开始
+	.popup_overlay {
+		position: fixed;
+		top: 0%;
+		left: 0%;
+		width: 100%;
+		height: 100%;
+		background-color: black;
+		z-index: 1001;
+		-moz-opacity: 0.8;
+		opacity: .80;
+		filter: alpha(opacity=88);
+	}
+
+	.popup_content {
+		position: fixed;
+		top: 50%;
+		left: 50%;
+		width: 480rpx;
+		height: 240rpx;
+		margin-left: -270rpx;
+		margin-top: -270rpx;
+		border: 10px solid white;
+		background-color: white;
+		z-index: 1002;
+		overflow: auto;
+		border-radius: 10px;
+	}
+
+	.popup_title {
+		font-size: 16px;
+		color: #788188;
+		text-align: center;
+	}
+
+	.bt_contact {
+		margin-top: 30px;
+	}
+
+	//客服提示框的样式结束
+
+	//推广码提示框的样式开始
+
+	.promotionCode_content {
+
+		position: fixed;
+		top: 50%;
+		left: 50%;
+		width: 480rpx;
+		height: 480rpx;
+		margin-left: -270rpx;
+		margin-top: -270rpx;
+		border: 10px solid white;
+		background-color: white;
+		z-index: 1002;
+		overflow: auto;
+		border-radius: 10px;
+
+		.promotionCodeImage {
+			width: 100%;
+			height: 100%;
+		}
+	}
+
+	//推广码提示框的样式结束
+</style>

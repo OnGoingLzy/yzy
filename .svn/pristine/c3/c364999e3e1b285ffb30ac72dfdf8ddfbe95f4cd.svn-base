@@ -1,0 +1,122 @@
+<template>
+	<view>
+		<!-- 流程导航 -->
+		<view class="title-navi tabbar">
+			<text class="f-active-color">点击问诊开方</text>
+			<image class="title-navi-next" src="../../static/icon/next_step_filled.svg"></image>
+			<text class="f-active-color">问诊信息</text>
+			<image class="title-navi-next" src="../../static/icon/next_step_filled.svg"></image>
+			<text class="f-active-color">医生开方</text>
+			<image class="title-navi-next" src="../../static/icon/next_step_filled.svg"></image>
+			<text class="f-active-color">下单购药</text>
+		</view>
+		<view style="height: 90rpx;"></view>
+		<view v-for="(item,i) in recipeList" :key="i" style="padding: 2vw;">	
+			<recipeCard :recipe="item"></recipeCard>
+		</view>
+	</view>
+</template>
+
+<script>
+	import request from '@/common/api/request.js'
+	import recipeCard from '@/components/recipe/recipe_card.vue'
+	export default {
+		data() {
+			return {
+				recipeList:[],
+			}
+		},
+		components:{recipeCard},
+		onShow() {
+			
+		},
+		onUnload() {
+		  // 在页面卸载时清除定时器
+		  clearInterval(this.timer);
+		},
+		onLoad() {
+			console.log("onload user_recipe")
+			this.getRecipeList()
+			// 启动定时器，每隔 30 秒执行一次 this.getRecipeList()
+			this.timer = setInterval(() => {
+			  this.getRecipeList();
+			  
+			}, 30000); // 30秒，单位是毫秒
+		},
+		onPullDownRefresh() {
+			console.log('refresh');
+			setTimeout(function () {
+				uni.stopPullDownRefresh();
+			}, 1000);
+			this.getRecipeList()
+		},
+		methods: {
+			async getRecipeList(){
+				if(this.recipeList.length==0 ||this.recipeList == null){
+					uni.showLoading({
+						title:'查询中'
+					})
+				}
+				const url = '/api/recipe/getRecipeList';
+				const method = 'POST'; 
+				const data = {
+					openid: uni.getStorageSync("openid"),
+					type:'ALL',
+				};
+				try {
+					const response = await request('yzy_app', url, method, data);
+					console.log(response);		//统一格式：{"data":{}, "flag":99, "result":"成功"}
+					if(response.code == 99){
+						this.recipeList = response.data.data
+						
+						uni.hideLoading()
+						
+					}
+					else {
+						
+					}
+				} catch (error) {
+					console.log(error);
+					uni.showToast({
+						icon: 'none',
+						title: '服务器出错了'
+					})
+				}
+			},
+		}
+	}
+</script>
+
+<style lang="scss">
+	
+ page{
+ 	background-color: #ebebeb;
+ }
+ 
+ .title-navi {
+ 	display: flex;
+ 	justify-content: space-between;
+ 	align-items: center;
+ 	padding: 10rpx 26rpx 20rpx 26rpx;
+ 	background-color: white;
+ }
+ 
+ .title-navi-next {
+ 	width: 20rpx;
+ 	height: 20rpx;
+ }
+ 
+ .tabbar {
+	width: 95%;
+	height: 60rpx;
+	background-color: #F7FCFF;
+	position: fixed;
+	top: 0;
+	bottom: -5rpx;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-left: -16rpx;
+	z-index: 10;
+ }
+</style>

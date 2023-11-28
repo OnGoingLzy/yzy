@@ -1,0 +1,563 @@
+<template>
+	<view>
+		<!-- 顶部的流程导航 -->
+		<view class="title-navi">
+			<text class="f-active-color">点击问诊开方</text>
+			<image class="title-navi-next" src="../../static/icon/next_step_filled.svg"></image>
+			<text class="f-active-color">问诊信息</text>
+			<image class="title-navi-next" src="../../static/icon/next_step_filled.svg"></image>
+			<text :class="isConsultateFinished ? 'f-active-color' : '' ">医生开方</text>
+			<image class="title-navi-next" :src="isConsultateFinished ? '../../static/icon/next_step_filled.svg' : '../../static/icon/next_step.svg'"></image>
+			<text>下单购药</text>
+		</view>
+		<!-- 必填部分：确认开药数量 -->
+		<view class="goods-count">
+			<view class="goods-count-firstline">
+				<view class="goods-count-title">
+					<text class="star-sign">*</text>
+					<text>确认开药数量</text>
+				</view>
+				<view class="goods-count-stock">
+					<text class="f-color" v-if="stockLimit === 0">（库存: {{stock}})</text>
+					<text class="f-color" v-else>（库存: {{stock}} | 限购: {{stockLimit}})</text>
+				</view>
+			</view>
+			<view class="goods-count-secondline">
+				<text class="f-color">医生将按照你选择的数量开处方</text>
+				<uni-number-box class="count-box" v-model="drugAmount" :min="1"
+					:max="maxBuyNum" />
+			</view>
+		</view>
+		<!-- 必填部分：选择用药人 -->
+		<view class="select-person">
+			<view class="select-person-firstline">
+				<view class="select-person-title">
+					<text class="star-sign">*</text>
+					<text>选择用药人</text>
+				</view>
+				<view class="more-person" @click="checkPerson()">
+					<view class="f-color">新增/编辑</view>
+					<image class="more-person-icon" src="../../static/icon/more_person.svg"></image>
+				</view>
+			</view>
+			<view class="uni-flex uni-row person-row">
+				<view class="flex-item person-item" v-for="(person, index) in persons" :key="index"
+					:class="index === selectPersonIndex ? 'persong-item-selected' : 'persong-item'"
+					@click="selectPersonIndex = index; selectPersonId = person.id">
+					<view class="person-name">{{person.goodsUserName}}</view>
+					<text class="person-info">{{person.sex}}</text>
+					<text class="person-info person-age" v-text="calculateAge(person.birthday)+'岁'"></text>
+					<text class="person-info" style="display: none;">{{person.id}}</text>
+				</view>
+			</view>
+			<view class="allergy-history seperator"
+				:style="selectPersonIndex === null ? 'display: none;' : 'display: flex;'">
+				<text class="allergy-history-title">过敏史</text>
+				<button type="primary" size="mini"
+					:class="{'mini-btn': true, 'button-selected': selectButton === '有', 'button-default': selectButton === '无'}"
+					@click="selectButton = '有'">有</button>
+				<button type="default" size="mini"
+					:class="{'mini-btn': true, 'button-selected': selectButton === '无', 'button-default': selectButton === '有'}"
+					@click="selectButton = '无'">无</button>
+			</view>
+		</view>
+		<!-- 必填部分：选择已确诊疾病 -->
+		<view class="disease-list">
+			<view class="disease-list-firstline">
+				<view class="disease-list-title">
+					<text class="star-sign">*</text>
+					<text>选择已确诊疾病</text>
+				</view>
+			</view>
+			<view class="disease-list-secondline">
+				<view class="disease-list-parent">
+					<uni-tag class="disease-item" custom-style="font-size: 32rpx; padding: 10rpx 16rpx;"
+						:type="selectDiseaseIndex === index ? 'primary' : 'default'" circle="true"
+						:inverted="selectDiseaseIndex === index ? 'false' : 'true'" size="default" :text="item"
+						v-for="(item, index) in diseaseList" :key="index"
+						@click="selectDiseaseIndex = index; selectDiseaseName = item"></uni-tag>
+				</view>
+			</view>
+		</view>
+		<view>
+			<checkbox-group name="read" class="checkbox-item" @change="checkboxChange()">
+				<checkbox value="cb" color="#1296DB" :checked="checkboxSelected" />
+				<text>我已阅读并知晓</text>
+				<text class="f-active-color" @click="openReadText()">《互联网诊疗风险告知及知情同意书》</text>
+			</checkbox-group>
+			<button class="commit-consult" type="primary" @click="consultateNextStep()">免费问诊开方</button>
+		</view>
+		<view class="blank-setting"></view>
+	</view>
+</template>
+
+<script>
+	import request from '@/common/api/request.js'
+	export default {
+		data() {
+			return {
+				goodsId: "",
+				shopId: '',
+				stock: 10,
+				stockLimit: 100,
+				persons: [],
+				selectPersonIndex: null,
+				selectButton: '无',
+				diseaseList: [""],
+				selectDiseaseIndex: null,
+				checkboxSelected: false,
+				hasNextSmarthosId: false,
+				drugAmount: 1,
+				selectDiseaseName: null,
+				selectPersonId: null,
+				clinicUrl: '',
+				hosId: '',
+				accessToken: '',
+				isConsultateFinished: false
+			}
+		},
+		computed: {
+			maxBuyNum(){
+				if(this.stockLimit > 0){
+					return this.stock < this.stockLimit ? this.stock : this.stockLimit
+				}else{
+					return this.stock
+				}
+			}
+		},
+		methods: {
+			//点击《互联网诊疗风险告知及知情同意书》后的跳转链接
+			openReadText() {
+				uni.navigateTo({
+					url: '../agreement/agreement'
+				});
+			},
+			//当复选框的选中项变更时触发
+			checkboxChange() {
+				this.checkboxSelected = !this.checkboxSelected;
+			},
+			consultateNextStep() {
+				//请先选择用药人
+				if (this.selectPersonIndex === null) {
+					uni.$showMsg("请先选择用药人再进行问诊开方！", 3000);
+					return;
+				}
+				//请先选择已确诊疾病
+				if (this.selectDiseaseIndex === null) {
+					uni.$showMsg("请先选择已确诊疾病再进行问诊开方！", 3000);
+					return;
+				}
+				//请先阅读协议
+				if (this.checkboxSelected === false) {
+					uni.$showMsg("请先阅读并知晓《互联网诊疗风险告知及知情同意书》，谢谢！", 3000);
+					return;
+				}
+				//如果没有获取到在水医方的ID，则无法进行下一步操作
+				if (this.hasNextSmarthosId === false) {
+					uni.$showMsg("获取待开方品种失败，请重试！", 3000);
+					return;
+				}
+				//如果已经有了问诊的URL，则无需再次问诊，直接跳转
+				if (this.clinicUrl !== '') {
+					/*
+					const regex = /hosId=([^&]+)/;
+					const hosIdMatch = this.clinicUrl.match(regex);
+					if (hosIdMatch) {
+						this.hosId = hosIdMatch[1];
+					}
+					const regex2 = /accessToken=([^&]+)/;
+					const accessTokenMatch = this.clinicUrl.match(regex2);
+					if (accessTokenMatch) {
+						this.accessToken = accessTokenMatch[1];
+					}
+					*/
+					const urlObj = {
+						url: this.clinicUrl
+					}
+					uni.navigateTo({
+						url: "/pages/outer_webview/outer_webview?urlObj=" + encodeURIComponent(JSON.stringify(urlObj))
+					});
+					return;
+				}
+				//进入问诊开方的程序
+				uni.showLoading({
+					title: "请稍等..."
+				});
+				this.consultate();
+			},
+			//问诊开方
+			async consultate() {
+				const url = '/api/Recipe/consultate';
+				const method = 'POST';
+				const data = {
+					goodsId: this.goodsId,
+					allergyHistory: this.selectButton,
+					amount: this.drugAmount,
+					diseaseName: this.selectDiseaseName,
+					personId: this.selectPersonId,
+					shopId: this.shopId
+				};
+				try {
+					const response = await request('yzy_app', url, method, data);
+					console.log(response); //统一格式：{"data":{}, "flag":99, "result":"成功"}
+					if (response.code == 99) {
+						uni.hideLoading();
+						this.clinicUrl = response.data;
+						/*
+						const regex = /hosId=([^&]+)/;
+						const hosIdMatch = this.clinicUrl.match(regex);
+						if (hosIdMatch) {
+							this.hosId = hosIdMatch[1];
+						}
+						const regex2 = /accessToken=([^&]+)/;
+						const accessTokenMatch = this.clinicUrl.match(regex2);
+						if (accessTokenMatch) {
+							this.accessToken = accessTokenMatch[1];
+						}
+						*/
+						const urlObj = {
+							url: this.clinicUrl
+						}
+						
+						uni.navigateTo({
+							url: "/pages/outer_webview/outer_webview?urlObj=" + encodeURIComponent(JSON.stringify(urlObj))
+						});
+					} else {
+						uni.hideLoading();
+						uni.$showMsg(response.msg, 5000);
+					}
+				} catch (error) {
+					uni.hideLoading();
+					uni.$showMsg(error, 3000);
+				}
+			},
+			//获取当前药品的诊断疾病名称
+			async getDisease() {
+				const url = '/api/Recipe/getDisease';
+				const method = 'POST';
+				const data = {
+					goodsId: this.goodsId
+				};
+				try {
+					const response = await request('yzy_app', url, method, data);
+					console.log(response); //统一格式：{"data":{}, "flag":99, "result":"成功"}
+					if (response.code == 99) {
+						this.diseaseList = JSON.parse(response.data);
+						this.diseaseList = [...new Set(this.diseaseList)];
+						this.diseaseList = Array.from(this.diseaseList);
+						this.hasNextSmarthosId = true;
+					} else {
+						uni.$showMsg(response.msg, 3000);
+						this.hasNextSmarthosId = false;
+					}
+				} catch (error) {
+					uni.$showMsg(error, 3000);
+					this.hasNextSmarthosId = false;
+				}
+			},
+			//新增、编辑用药人
+			checkPerson() {
+				uni.navigateTo({
+					url: '../goods_user/goods_user'
+				});
+			},
+			//获取用药人
+			async getGoodsUser() {
+				const url = '/api/user/getGoodsUser';
+				const method = 'POST';
+				const data = {
+					openid: uni.getStorageSync("openid"),
+					phone: uni.getStorageSync("phone")
+				};
+				try {
+					const response = await request('yzy_app', url, method, data);
+					console.log(response); //统一格式：{"data":{}, "flag":99, "result":"成功"}
+					if (response.code == 99) {
+						this.persons = response.data.data;
+						if(this.persons!=null||this.persons.length!=0){
+							// 查找是否存在 relationship 为 "本人" 的对象
+							const index = this.persons.findIndex(person => person.relationship === "本人");
+							
+							if (index !== -1) {
+							  // 如果找到了 "本人"，则设置索引和 ID
+							  this.selectPersonIndex = index;
+							  this.selectPersonId = this.persons[index].id;
+							} else if (this.persons.length > 0) {
+							  // 如果未找到 "本人"，但 persons 数组不为空，则默认选择第一个
+							  // this.selectPersonIndex = 0;
+							  // this.selectPersonId = this.persons[0].id;
+							}
+						}
+					} else {
+						uni.$showMsg(response.msg, 3000);
+						this.hasNextSmarthosId = false;
+					}
+				} catch (error) {
+					uni.$showMsg(error, 3000);
+					this.hasNextSmarthosId = false;
+				}
+			},
+			calculateAge(birthday) {
+				const birthdayDate = new Date(
+					birthday.substr(0, 4),
+					birthday.substr(4, 2) - 1,
+					birthday.substr(6, 2)
+				);
+
+				const currentDate = new Date();
+				const ageInMillis = currentDate - birthdayDate;
+
+				// 计算年龄
+				const ageInYears = Math.floor(ageInMillis / (365 * 24 * 60 * 60 * 1000));
+				return ageInYears;
+			},
+			//TODO: 获取当前处方是否已经开具成功
+			async getRecipeStatus(clinic_id) {
+				const url = '/api/Recipe/getRecipeStatus';
+				const method = 'POST';
+				const data = {
+					'clinicId': clinic_id,
+				};
+				try {
+					const response = await request('yzy_app', url, method, data);
+					console.log(response); //统一格式：{"data":{}, "flag":99, "result":"成功"}
+					if (response.code == 99) {
+						this.persons = response.data.data;
+					} else {
+						uni.$showMsg(response.msg, 3000);
+						this.hasNextSmarthosId = false;
+					}
+				} catch (error) {
+					uni.$showMsg(error, 3000);
+					this.hasNextSmarthosId = false;
+				}
+			},
+		},
+		created() {
+
+		},
+		onLoad(option) {
+			this.goodsId = option.goodsId;
+			this.shopId = option.shopId;
+			this.drugAmount = parseInt(option.goodsAmount);
+			this.stockLimit = parseInt(option.stockLimit);
+			this.stock = parseInt(option.stock);
+			this.getDisease();
+			this.getGoodsUser()
+			console.log(option)
+			uni.$on('pageClosed', (data) => {
+				this.getGoodsUser();
+				this.selectPersonIndex = null;
+			});
+			uni.$on('orderEnd', (data) => {
+				// uni.showLoading({
+				// 	title: "结果查询中..."
+				// })
+				// console.log(data);
+				//this.getRecipeStatus(data.clinicId);
+				// 2023-09-03 把最上面的流程图重置一下
+				this.isConsultateFinished = true;
+				uni.showToast({
+					duration: 3000,
+					mask: true,
+					title: '问诊完成，请等待审方完成继续购药',
+					icon: 'none'
+				});
+				setTimeout(function() {
+					//跳转逻辑和方法
+					// uni.reLaunch({
+					// 	url: '/pages/shopping_cart/shopping_cart'
+					// })
+				
+					uni.redirectTo({
+						url:'/pages/user_recipe/user_recipe?clinicId='+data.clinicId
+					})
+					
+				}, 3000);
+			});
+		}
+	}
+</script>
+
+<style>
+	page {
+		background-color: #F7FCFF;
+	}
+	
+	uni-number-box {
+		scale: 110%;
+	}
+
+	.title-navi {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 20rpx 26rpx;
+		background-color: white;
+	}
+
+	.title-navi-next,
+	.more-person-icon {
+		width: 20rpx;
+		height: 20rpx;
+	}
+
+	.goods-count-title,
+	.select-person-title,
+	.disease-list-title {
+		display: flex;
+		font-size: 36rpx;
+		align-items: center;
+	}
+
+	.goods-count-firstline,
+	.goods-count-secondline,
+	.disease-list-firstline {
+		display: flex;
+		align-items: center;
+	}
+
+	.goods-count-secondline {
+		padding: 10rpx 0;
+	}
+
+	.goods-count {
+		background-color: #FFFFFF;
+		border-radius: 24rpx;
+		padding: 24rpx 24rpx;
+		margin: 36rpx 24rpx 24rpx;
+	}
+
+	.more-person {
+		display: flex;
+		align-items: center;
+		margin-left: auto;
+	}
+
+	.select-person-firstline {
+		display: flex;
+		align-items: center;
+	}
+
+	.select-person,
+	.disease-list {
+		background-color: #FFFFFF;
+		border-radius: 24rpx;
+		padding: 24rpx 24rpx;
+		margin: 36rpx 24rpx 24rpx;
+	}
+
+	.more-person-icon {
+		padding: 0 10rpx;
+	}
+
+	.star-sign {
+		color: red;
+		padding-right: 10rpx;
+	}
+
+	.count-box {
+		margin-left: auto;
+	}
+
+	.person-item {
+		background-color: #F9F9F9;
+		padding: 12rpx 60rpx 12rpx 24rpx;
+		margin: 24rpx 12rpx 12rpx 8rpx;
+		border-radius: 12rpx;
+		border: #FFFFFF solid 4rpx;
+		color: gray;
+	}
+
+	.person-name {
+		font-weight: bold;
+		font-size: 30rpx;
+	}
+
+	.person-row {
+		flex-wrap: wrap;
+	}
+
+	.persong-item-selected {
+		background-color: #2B98D1;
+		padding: 12rpx 60rpx 12rpx 24rpx;
+		margin: 24rpx 12rpx 12rpx 8rpx;
+		border-radius: 12rpx;
+		border: #2B98D1 solid 4rpx;
+		color: white;
+	}
+
+	.seperator {
+		border-top: 1rpx solid #EEEEEE;
+		padding: 0 0 18rpx 0;
+	}
+
+	.allergy-history {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: 24rpx 0 0 0
+	}
+
+	.button-selected {
+		background-color: #2B98D1 !important;
+		color: white !important;
+	}
+
+	.button-default {
+		background-color: #F2F7F5 !important;
+		color: black !important;
+	}
+
+	.allergy-history-title {
+		font-size: 32rpx;
+		padding-right: 48rpx;
+	}
+
+	.mini-btn {
+		display: flex !important;
+		width: 180rpx;
+		height: 80rpx;
+		justify-content: center !important;
+		align-items: center !important;
+		font-size: 30rpx !important;
+	}
+
+	.disease-list-parent {
+		display: flex;
+		flex-wrap: wrap;
+	}
+
+	.disease-item {
+		padding: 16rpx 10rpx;
+	}
+
+	.disease-list-secondline {
+		padding-top: 10rpx;
+	}
+
+	.checkbox-item {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 36rpx 0 24rpx 0;
+	}
+
+	.commit-consult {
+		background-color: #2B98D1 !important;
+		margin: 8rpx 20rpx;
+	}
+
+	.person-age {
+		padding-left: 20rpx;
+	}
+	
+	.blank-setting{
+		height: 50rpx;
+	}
+
+	.uni-tag--primary{
+		background-color: #2B98D1 !important;
+		border-color: #2B98D1 !important;
+	}
+</style>

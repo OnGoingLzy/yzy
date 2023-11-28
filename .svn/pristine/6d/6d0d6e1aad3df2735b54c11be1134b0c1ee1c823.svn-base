@@ -1,0 +1,84 @@
+<template>
+	<view>
+		<h1>云找药小程序隐私保护指引</h1>
+		<h2 class="content-guide">本指引是云找药小程序开发者 "云南省医药有限公司"（以下简称“开发者”）为处理你的个人信息而制定。</h2>
+		<h2 class="main-content">1.开发者处理的信息</h2>
+		<h3>根据法律规定，开发者仅处理实现小程序功能所必要的信息。</h3>
+		<h3>为了对用户进行唯一标识认证，开发者将在获取你的明示同意后，收集你的手机号。</h3>
+		<h2 class="main-content">2.你的权益</h2>
+		<h3>2.1 关于收集你的手机号，你可以通过以下路径：小程序主页右上角“...” — “设置” — “小程序已获取的信息” — 点击特定信息 — 点击“通知开发者删除”，开发者承诺收到通知后将删除信息。</h3>
+		<h3>2.2 关于你的个人信息，你可以通过以下方式与开发者联系，行使查阅、复制、更正、删除等法定权利。</h3>
+		<h3>电话 : 15198801905</h3>
+		<h2 class="main-content">3.开发者对信息的存储</h2>
+		<h3>3.1 开发者承诺，除法律法规另有规定外，开发者对你的信息的保存期限应当为实现处理目的所必要的最短时间。</h3>
+		<h2 class="main-content">4.信息的使用规则</h2>
+		<h3>4.1 开发者将会在本指引所明示的用途内使用收集的信息。</h3>
+		<h3>4.2 如开发者使用你的信息超出本指引目的或合理范围，开发者必须在变更使用目的或范围前，再次以短信方式告知并征得你的明示同意。</h3>
+		<h2 class="main-content">5.信息对外提供</h2>
+		<h3>5.1 开发者承诺，不会主动共享或转让你的信息至任何第三方，如存在确需共享或转让时，开发者应当直接征得或确认第三方征得你的单独同意。</h3>
+		<h3>5.2 开发者承诺，不会对外公开披露你的信息，如必须公开披露时，开发者应当向你告知公开披露的目的、披露信息的类型及可能涉及的信息，并征得你的单独同意。</h3>
+		<h2 class="main-content">6.你认为开发者未遵守上述约定，或有其他的投诉建议、或未成年人个人信息保护相关问题，可通过以下方式与开发者联系；或者向微信进行投诉。</h2>
+		<h3>电话 : 15198801905</h3>
+		<view class="bottom">
+			<h3 class="bottom-content">更新日期：2023-03-10</h3>
+			<h3 class="bottom-content">生效日期：2023-03-10</h3>
+		</view>
+	</view>
+</template>
+
+<script>
+	export default {
+		data() {
+			return {
+				
+			}
+		},
+		methods: {
+			
+		}
+	}
+</script>
+
+<style scoped>
+	h1{
+		font-weight: bold;
+		font-size: 20px;
+		text-align: center;
+		padding-top: 20px;
+		padding-bottom: 35px;
+		color: #353535;
+	}
+
+	h2{
+		color: #353535;
+		padding-left: 10px;
+		padding-right: 7px;
+	}
+	
+	.main-content{
+		font-weight: bold;
+		font-size: 17px;
+		padding-top: 10px;
+		padding-bottom: 10px;
+	}
+	
+	.content-guide{
+		padding-bottom: 20px;
+	}
+	
+	h3{
+		color: #353535;
+		padding-left: 35px;
+		padding-right: 10px;
+		padding-bottom: 8px;
+	}
+	
+	.bottom-content{
+		text-align: right;
+	}
+	
+	.bottom{
+		padding-top: 30px;
+		padding-bottom: 50px;
+	}
+</style>

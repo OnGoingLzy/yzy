@@ -1,0 +1,26 @@
+
+.content{
+	width: 100%;
+	background: white
+}
+.box{
+	margin: 15px 5vw 0 5vw;
+    border-radius: 25px;
+    max-width: 90vw;
+    border: 1px solid #1296DB;
+    padding: 5px;
+}
+.button{
+	margin: 15px;
+	padding: 10px;
+	background: #1296DB;
+	height: 40px;
+	border-radius: 30px;
+	text-align: center;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: white;
+	font-weight: bold;
+}
+

@@ -1,0 +1,9 @@
+{
+  "defaultTitle": "门店选择",
+  "pullRefresh": false,
+  "usingComponents": {
+    "vk-data-goods-sku-popup": "/components/vk-data-goods-sku-popup/vk-data-goods-sku-popup",
+    "picker-address": "/components/goods_order/pick_address/pick_address",
+    "shop-list": "/components/goods_order/shop_list/shop_list"
+  }
+}

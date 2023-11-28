@@ -1,0 +1,926 @@
+<template>
+	<view class="confirm-order">
+		<view class="address-card card-shadow" @click="showAddFrame()">
+			<view class="address-info">
+				<view class="address-details">
+					{{ selectedAddress.city }}
+				</view>
+				<view class="address-details-road">{{ selectedAddress.address }}</view>
+				<view class="address-name-phone">
+					<view class="address-name">{{ selectedAddress.name }}</view>
+					<view class="address-phone">{{ selectedAddress.phone }}</view>
+				</view>
+			</view>
+			<view>
+				<image class="more-location-icon" src="../../static/icon/more_person.svg"></image>
+			</view>
+		</view>
+		<view class="order-list card-shadow">
+			<view class="order-item" v-for="items in shops" :key="items.id">
+				<view class="item-list">
+					<view class="shop-title" @click="goToShop(items)">
+						<image src="/static/tabbar/home-active.png" style="width: 16px;height: 16px;"></image>
+						<view class="shop-name">{{ items.simplifyShopName }}</view>
+					</view>
+					<view class="item" v-for="item in items.drugs" :key="item.id">
+						<view class="item-info">
+							<image
+								:src="item.imgLszh ? 'http://images.yndzyf.com/getimage.ashx?mlszh=' + item.imgLszh : defaultPic"
+								mode="">
+							</image>
+							<view class="item-details">
+								<view class="item-name">{{ item.drugName }}</view>
+								<view class="item-spec">{{ item.specification +'/'+item.sellUnit}}</view>
+								<!-- <view class="item-spec">{{ item.specification }}</view> -->
+								<view class="item-manu">{{ item.manufacturer }}</view>
+							</view>
+							<view class="item-detail-right">
+								<view class="item-quantity">x{{ item.num }}</view>
+								<view class="item-price">￥{{ item.price.toFixed(2) }}</view>
+							</view>
+						</view>
+					</view>
+					<view class="form-container">
+						<view class="form-item">
+							<view class="label">
+								<text class="label-word">商品数量：</text>
+							</view>
+							<view class="value">{{'共 ' + totalNum + ' 件'}}</view>
+						</view>
+						<view class="line"></view>
+					</view>
+				</view>
+			</view>
+		</view>
+		<view class="shipping-fee-card card-shadow">
+			<view class="shipping-fee-title" style="display: flex; align-items: center;">
+				<view class="uni-title uni-common-pl memo">配送方式：</view>
+				<uni-data-select
+					v-model="selectValue"
+					:localdata="selectRange"
+					:clear="false"
+					class="shipping-select"
+					@change="selectChanged"
+				></uni-data-select>
+			</view>
+			<view class="item-list">
+				<view class="form-container-shipping">
+					<view class="form-item">
+						<view class="label">
+							<text class="label-word">距离：</text>
+						</view>
+						<view class="value">{{distance.toFixed(2) + ' km'}}</view>
+					</view>
+					<view class="line"></view>
+					<view class="form-item">
+						<view class="label">
+							<text class="label-word">运费：</text>
+						</view>
+						<view class="value" style="color: red; font-weight: bold;">{{ '￥' + shippingFee.toFixed(2) }}</view>
+					</view>
+					<view class="line"></view>
+					<view class="form-item" v-if="selectText !== '请选择'">
+						<view class="label">
+							<text class="label-word">注意：</text>
+						</view>
+						<view class="value">{{cautionText}}</view>
+					</view>
+					<view class="form-item-caution" v-if="selectText === '到店自取'">
+						<view class="value" style=" color: #1296DB; font-weight: bold;">您可到店刷医保卡，已支付金额将原路返回</view>
+					</view>
+					<view class="line" v-if="selectText !== '请选择'"></view>
+				</view>
+			</view>
+		</view>
+		<view class="memo-card card-shadow">
+			<view class="uni-title uni-common-pl memo">订单备注：</view>
+			<view class="uni-textarea">
+				<textarea @blur="bindTextAreaBlur" placeholder="请在此处填写订单备注信息(选填)" />
+			</view>
+		</view>
+		<view class="caution-card card-shadow">
+			<view class="caution-title">订单中的药品不支持七天无理由退换</view>
+			<view class="caution-content">依据GSP相关规定，药品一经售出，无质量问题不退不换。</view>
+		</view>
+		<view class="blank"></view>
+		<view class="tabbar">
+			<view>
+				<checkbox-group name="read" class="checkbox-item" @change="checkboxChange()">
+					<checkbox value="cb" color="#1296DB" :checked="checkboxSelected" />
+					<text>阅读并同意</text>
+					<text class="f-active-color" @click="openReadText()">《商品验收标准》</text>
+					<text>并知悉处方药购买须知</text>
+				</checkbox-group>
+			</view>
+			<view class="tabbar-commit">
+				<view class="total-item">
+					<view class="total-price">总计：</view>
+					<text class="total-price-num">￥{{ totalPrice.toFixed(2) }}</text>
+				</view>
+				<view class="submit-btn" @tap="submitOrder">提交订单</view>
+			</view>
+		</view>
+
+		<uni-popup ref="popup" type="center" :mask-click="isEnableClick" :animation="true">
+			<selectUserLocation @fatherMethod="fatherMethods" ref="child"></selectUserLocation>
+		</uni-popup>
+	</view>
+</template>
+
+<script>
+	import request from '@/common/api/request.js'
+	import requestZhyf from '@/common/api/requestZhyf.js'
+	import selectUserLocation from '@/components/user/select_user_location.vue'
+	export default {
+		components: {
+			selectUserLocation
+		},
+		data() {
+			return {
+				selectValue: 0,
+				selectRange: [{"value": 0, "text": "请选择"}],
+				shops: [],
+				totalPrice: 0, // 总价
+				selectedAddress: {
+					name: '',
+					phone: '',
+					province: '',
+					city: '',
+					district: '',
+					address: '请点击此处选择收货地址',
+				},
+				shippingFee: 0.00,
+				distance: 0.00,
+				checkboxSelected: false,
+				totalNum: 0,
+				list: [],
+				selectedList: [],
+				isEnableClick: true,
+				popup: true,
+				locationId: null,
+				memo: '',
+				realTimePricing: [],
+				canNext: true,
+				priceMatch: true,
+				defaultPic: 'http://images.yndzyf.com/getimage.ashx?mlszh=17700932',
+				feeOrigin: [],
+				selectText: '',
+				cautionText: '',
+				isShopping: null
+			}
+		},
+		onShow() {
+			this.getAddressList()
+		},
+		methods: {
+			//用户点击商店名称后，自动跳转到该门店的详情页面
+			goToShop(items){
+				uni.navigateTo({
+					url: '/pages/shop_certificate/shop_certificate?shopName=' + encodeURIComponent(JSON.stringify(items.shopName)) 
+						+ '&shopId=' + encodeURIComponent(JSON.stringify(items.shopId))
+				});
+			},
+			selectChanged(e){
+				let selectedOption = this.selectRange.find(option => option.value === this.selectValue);
+				this.selectText = selectedOption ? selectedOption.text : '';
+				this.feeOrigin.forEach(item => {
+					if (item.type === this.selectText) {
+						this.shippingFee = item.Fee;
+					}
+				});
+				if(this.selectText === "请选择"){
+					this.shippingFee = 0.00;
+				}
+				this.calcTotalPrice();
+				if(this.selectText === "跑腿"){
+					this.cautionText = "门店营业时间内订单，收到订单15分钟内完成打包，并交由跑腿配送。"
+				}else if (this.selectText === "快递邮寄"){
+					if(this.isShopping){
+						this.cautionText = "门店营业时间内订单，当天完成发货。"
+					}else{
+						this.cautionText = "门店营业时间外订单，第二天营业开始2小时内完成发货。"
+					}
+				}else if (this.selectText === "药房自配"){
+					if(this.isShopping){
+						this.cautionText = "门店营业时间内订单，2小时内完成配送。"
+					}else{
+						this.cautionText = "门店营业时间外订单，第二天营业开始2小时内完成配送。"
+					}
+				}else if (this.selectText === "到店自取"){
+					this.cautionText = "收到订单后20分钟内完成订单打包，顾客凭订单号到店取药。"
+				}
+			},
+			fatherMethods(e) {
+				console.log('父组件方法', e); // 父组件方法
+				this.addOver(e)
+			},
+			//添加用药人结束后执行的方法
+			addOver(res) {
+				// this.getGoodsUser()
+				this.$refs.popup.close();
+			},
+			// 提交订单
+			submitOrder() {
+				uni.requestSubscribeMessage({
+					//此处填写申请模板的模板ID
+					tmplIds: ['JZGbfSSv0-jB5yS4GObkqD0TUrPqDdAbalAcz70xjZg'],
+					success(res) {
+						console.log(res)
+					},
+
+				})
+				//先进行合规检查
+				if (!this.checkboxSelected) {
+					uni.$showMsg("请先阅读并同意《商品验收标准》，谢谢！", 3000);
+					return;
+				}
+				if (this.selectText === '' || this.selectText === "请选择"){
+					uni.$showMsg("请先选择配送方式再结算", 3000);
+					return;
+				}
+				if (this.selectedAddress.address === '请点击此处选择收货地址') {
+					uni.$showMsg("请先选择收货地址再结算", 3000);
+					return;
+				}
+				console.log(this.locationId);
+				//先要获取一下最新的库存和价格，如果价格和库存不一致的话需要进行提示用户
+				this.realTimePricing = this.shops[0].drugs.map(drug => {
+					return {
+						goodsId: drug.drugId,
+						goodsOuterId: drug.drugId,
+						shopId: this.shops[0].shopId
+					};
+				});
+				this.getRealTimePricing();
+			},
+			//获取准备购买商品的实时价格和库存
+			async getRealTimePricing() {
+				const url = '/api/Goods/getShopSellGoodsInfo';
+				const method = 'POST';
+				const data = {
+					Body: JSON.stringify(this.realTimePricing),
+				};
+				try {
+					const response = await request('yzy_app', url, method, data);
+					console.log(response); //统一格式：{"data":{}, "flag":99, "result":"成功"}
+					this.priceMatch = false;
+					this.canNext = false;
+					if (response.code == 99) {
+						const realTimePriceArray = response.data;
+						console.log("比较数据");
+						console.log(JSON.stringify(realTimePriceArray));
+						console.log(JSON.stringify(this.shops[0]));
+
+						this.shops[0].drugs.forEach(drug => {
+							let match = realTimePriceArray.find(item => item.goodsId === drug.drugId && item
+								.shopId === this.shops[0]
+								.shopId);
+							if (match) {
+								if (drug.num <= match.inventory && drug.price === match.price) {
+									console.log('购买库存和价格一致，无需同步，drugId: ' + drug.drugId);
+									this.priceMatch = true;
+									this.canNext = true;
+								} else {
+									this.priceMatch = false;
+									this.canNext = true;
+								}
+							} else {
+								this.canNext = false;
+							}
+							//如果完全没有匹配上，则不允许再继续支付
+							if (this.canNext === false) {
+								uni.$showMsg("未查询到所购买商品的价格和库存信息", 3000);
+								return;
+							}
+							//如果只是部分商品没有匹配上，那需要提示用户，并进行更新库存和价格
+							if (this.priceMatch === false) {
+								this.shops[0].drugs.forEach(drug => {
+									let match = realTimePriceArray.find(item => item.goodsId === drug
+										.drugId && item
+										.shopId === this.shops[0].shopId);
+									if (match) {
+										if (drug.price !== match.price) {
+											drug.price = match.price;
+											console.log('价格同步：drugId: ' + drug.drugId);
+										}
+										if (drug.num > match.inventory) {
+											drug.num = match.inventory;
+											console.log('购买数量同步：drugId: ' + drug.drugId);
+										}
+									} else {
+										this.canNext = false;
+										return;
+									}
+								});
+								this.calcTotalPrice();
+								uni.$showMsg("请留意，因后台数据变化，价格和数量存在变动！", 3000);
+								return;
+							}
+						});
+						if (this.priceMatch === true && this.canNext === true) {
+							this.Pay();
+						}
+					} else {
+						console.log("-99" + response.result);
+						uni.$showMsg(response.result, 3000);
+					}
+				} catch (error) {
+					uni.$showMsg(error, 3000);
+				}
+			},
+			//拉起微信支付
+			async Pay() {
+				uni.showLoading({
+					title: "请稍等...",
+					mask: true
+				});
+				const transformedDrugs = this.shops[0].drugs.map(drug => {
+					return {
+						id: drug.id,
+						goodsId: drug.drugId,
+						num: drug.num,
+						price: drug.price
+					};
+				});
+				const url = '/api/Trade/wechatPay';
+				const method = 'POST';
+				const data = {
+					openid: uni.getStorageSync("openid"),
+					shopId: this.shops[0].shopId,
+					goodsList: transformedDrugs,
+					locationId: this.locationId,
+					memo: this.memo,
+					shippingFee: this.shippingFee,
+					type: this.selectText
+				};
+				try {
+					const response = await request('yzy_app', url, method, data);
+					console.log(response); //统一格式：{"data":{}, "flag":99, "result":"成功"}
+					if (response.code == 99) {
+						this.requestWxPay(response.data, response.data.main_order_id)
+						uni.hideLoading();
+					} else {
+						uni.showToast({
+							icon: 'none',
+							title: '创建订单失败'
+						})
+					}
+				} catch (error) {
+					console.log(error);
+					uni.showToast({
+						icon: 'none',
+						title: '服务器出错了'
+					})
+				}
+			},
+			requestWxPay(data, main_order_id) {
+				var that = this;
+				uni.requestPayment({
+					provider: 'wxpay', //支付类型-固定值
+					timeStamp: data.timeStamp, // 时间戳（单位：秒）
+					nonceStr: data.nonceStr, // 随机字符串
+					package: data.package, // 固定值
+					signType: data.signType, //固定值
+					paySign: data.paySign, //签名
+
+					success: function(res) {
+						console.log("支付成功");
+						uni.showToast({
+							icon: 'success',
+							title: '支付成功',
+							mask: true
+						})
+						that.testQueryPay(data.out_order_id, main_order_id) //支付成功后查询一下微信支付订单状态
+						that.shops = null;
+						//跳转支付成功的页面
+						uni.redirectTo({
+							url:'/pages/payment_success/payment_success'
+						})
+					},
+					fail: function(err) {
+						// console.log('fail:' + JSON.stringify(err));
+						console.log("支付失败");
+						uni.showToast({
+							icon: 'none',
+							title: '支付失败'
+						})
+						
+						//用户未支付则发一个通知
+						that.testQueryPay(data.out_order_id, main_order_id) //支付成功后查询一下微信支付订单状态
+						uni.reLaunch({
+							url:'/pages/user/user'
+						})
+					}
+				})
+			},
+			//测试查询支付
+			async testQueryPay(out_order_id, main_order_id) {
+				const url = '/api/example/testQueryPayOrder';
+				const method = 'POST';
+				const data = {
+					openid: uni.getStorageSync("openid"),
+					main_order_id: main_order_id,
+					out_order_id: out_order_id,
+				};
+				try {
+					const response = await request('yzy_app', url, method, data);
+					console.log(response); //统一格式：{"data":{}, "flag":99, "result":"成功"}
+					if (response.code == 99) {
+						console.log("真实的response.msg")
+						console.log(response.msg);
+						console.log('operateId：' + response.data.operateId);
+						this.uploadOrderToZhyf(response.msg, response.data.operateId);
+						console.log('查询成功并回填数据库成功！');
+					}
+				} catch (error) {
+					console.log(error);
+
+				}
+			},
+			//上传智慧药房做账
+			async uploadOrderToZhyf(msg, operateId) {
+				const msgJson = JSON.parse(msg);
+				msgJson.operateId = operateId;
+				console.log(JSON.stringify(msgJson));
+				const url = '/api/Zhyf/makeAccountForOuterOrder';
+				const method = 'POST';
+				const data = JSON.stringify(msgJson);
+				try {
+					console.log(data);
+					const response = await requestZhyf('yzy_app', url, method, data);
+					console.log(response); //统一格式：{"data":{}, "flag":99, "result":"成功"}
+					if (response.code == 99) {
+						console.log("销售记录上传智慧药房成功！");
+					} else {
+
+					}
+				} catch (error) {
+					console.log(error);
+				}
+			},
+			//当复选框的选中项变更时触发
+			checkboxChange() {
+				this.checkboxSelected = !this.checkboxSelected;
+			},
+			openReadText() {
+				return;
+				uni.navigateTo({
+					url: '/pages/agreement_order/agreement_order'
+				});
+			},
+			bindTextAreaBlur: function(e) {
+				this.memo = e.detail.value;
+				console.log(e.detail.value);
+			},
+			calcTotalPrice() {
+				//总价
+				const drugsWithTotal = this.shops.map(shop => ({
+					...shop,
+					drugs: shop.drugs.map(drug => ({
+						...drug,
+						total: drug.num * drug.price.toFixed(2)
+					}))
+				}))
+				const shopsWithTotal = drugsWithTotal.map(shop => ({
+					...shop,
+					total: shop.drugs.reduce((acc, drug) => acc + drug.total, 0)
+				}));
+				const total = shopsWithTotal.reduce((acc, shop) => acc + shop.total, 0);
+
+				//商品总数量
+				const drugs = this.shops.flatMap(shop =>
+					shop.drugs.map(drug => drug.num)
+				);
+
+				const totalNum = drugs.reduce((a, b) => a + b, 0);
+
+				this.totalPrice = total + this.shippingFee;
+				this.totalNum = totalNum;
+			},
+			//获取用户的地址信息
+			async getAddressList() {
+				const url = '/api/user/getAddressList';
+				const method = 'POST';
+				const data = {
+					openid: uni.getStorageSync("openid")
+				};
+				try {
+					const response = await request('yzy_app', url, method, data);
+					console.log(response); //统一格式：{"data":{}, "flag":99, "result":"成功"}
+					if (response.code == 99) {
+						console.log("99" + response.result);
+						this.selectedAddress = response.data.data[0];
+						this.selectedAddress.phone = response.data.data[0].tel;
+						this.selectedAddress.address = response.data.data[0].details;
+						console.log(this.selectedAddress);
+					} else {
+						console.log("-99" + response.result);
+					}
+				} catch (error) {
+					console.log(error);
+				}
+			},
+			showAddFrame() {
+				this.$refs.popup.open('center');
+			},
+			//2023-08-30 更新配送体系上线
+			//获取用户的地址信息
+			async getShopShippingFee() {
+				const url = '/api/shop/getShopShippingFee';
+				const method = 'POST';
+				const data = {
+					shopId: this.shops[0].shopId,
+					addressId: this.locationId
+				};
+				try {
+					const response = await request('yzy_app', url, method, data);
+					console.log('ShippingFee');
+					console.log(response); //统一格式：{"data":{}, "flag":99, "result":"成功"}
+					if (response.data.flag == 99) {
+						this.feeOrigin = response.data.data;
+						this.selectRange = [{"value": 0, "text": "请选择"}];
+						this.selectText = "请选择";
+						this.selectValue = 0;
+						this.selectChanged(null);
+						this.feeOrigin.forEach(item => {
+							this.selectRange.push({value: item.id, text: item.type});
+						});
+						this.distance = response.data.distance;
+						this.isShopping = Boolean(response.data.isShopping);
+						console.log(this.isShopping);
+						this.calcTotalPrice();
+					} else {
+						console.log("-99" + response.data.result);
+					}
+				} catch (error) {
+					console.log(error);
+				}
+			},
+		},
+		onLoad(option) {
+			const item = JSON.parse(decodeURIComponent(option.drug));
+			console.log(item);
+			this.shops = item;
+		},
+		created() {
+			uni.$on('pageClosedLocation', (data) => {
+				console.log("pageClosedLocation");
+				console.log(data);
+				this.selectedAddress.name = data.name;
+				this.selectedAddress.phone = data.tel;
+				this.selectedAddress.address = data.details;
+				this.selectedAddress.city = data.city;
+				this.locationId = data.id;
+				this.getShopShippingFee();
+			});
+			uni.$on('addressUpdated', (data) => {
+				this.getAddressList();
+				console.log("获取地址成功！");
+				this.$refs.child.getAddressList();
+			});
+			uni.$on('pageClosedAddress', (data) => {
+				this.getAddressList();
+				console.log('pageClosedAddress: FromSelect');
+				this.$refs.child.getAddressList();
+			});
+		}
+	};
+</script>
+
+<style>
+	.form-container-shipping {
+		padding: 10rpx 20rpx 0 20rpx;
+	}
+	
+	.form-container {
+		padding: 20rpx;
+	}
+
+	.form-item {
+		display: flex;
+		align-items: center;
+		margin-bottom: 10upx;
+		justify-content: space-between;
+		padding: 0 20rpx;
+	}
+	
+	.form-item-caution{
+		display: flex;
+		align-items: center;
+		margin-bottom: 10upx;
+		justify-content: center;
+		padding: 0 20rpx;
+	}
+
+	.label {
+		width: 140rpx;
+		display: flex;
+		justify-content: space-between;
+	}
+
+
+
+	.line {
+		height: 1upx;
+		background-color: #ccc;
+		margin: 10upx 0;
+	}
+
+	page {
+		background-color: #F7FCFF;
+	}
+
+	.address-name-phone {
+		display: flex;
+		align-items: center;
+	}
+
+	.address-card {
+		display: flex;
+		align-items: center;
+		background-color: #fff;
+		padding: 20rpx;
+		margin-bottom: 20rpx;
+		border-radius: 24rpx;
+	}
+
+	.address-info {
+		flex: 1;
+		padding: 0 10rpx;
+	}
+
+	.address-name {
+		font-size: 30rpx;
+		font-weight: bold;
+	}
+
+	.address-phone {
+		font-size: 30rpx;
+		color: #636263;
+		padding: 0 30rpx;
+	}
+
+	.address-details {
+		font-size: 32rpx;
+		color: #636263;
+		margin-top: 10rpx;
+	}
+
+	.address-details-road {
+		font-size: 32rpx;
+		color: #636263;
+		font-weight: bold;
+	}
+
+	.confirm-order {
+		padding: 20rpx;
+	}
+
+	.order-list {
+		margin-bottom: 20rpx;
+		border-radius: 24rpx;
+	}
+
+	.order-item {
+		margin-bottom: 20rpx;
+	}
+
+	.shop-name {
+		font-size: 32rpx;
+		font-weight: 800;
+		margin-bottom: 10rpx;
+		padding-top: 10rpx;
+		padding-left: 6rpx;
+	}
+
+	.item-list {
+		background-color: #fff;
+		padding: 20rpx;
+		border-radius: 32rpx;
+	}
+
+	.item {
+		display: flex;
+		align-items: center;
+		margin-bottom: 10rpx;
+		background-color: #fff;
+		padding: 20rpx;
+		border-radius: 32rpx;
+	}
+
+	.item-info {
+		display: flex;
+		align-items: center;
+	}
+
+	.item-details {
+		margin-left: 20rpx;
+	}
+
+	.item-name {
+		width: 375rpx;
+		display: flex;
+		font-size: 28rpx;
+		margin-bottom: 10rpx;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		display: -webkit-box;
+		-webkit-line-clamp: 2;
+		-webkit-box-orient: vertical;
+		line-height: 40rpx;
+	}
+
+	.item-spec {
+		font-size: 24rpx;
+		color: #999;
+	}
+	
+	.item-manu{
+		font-size: 24rpx;
+		color: #999;
+		margin-bottom: 10rpx;
+	}
+
+	.item-price {
+		font-size: 28rpx;
+		color: #f00;
+	}
+
+	.item-quantity {
+		font-size: 28rpx;
+		color: #999;
+		margin-left: auto;
+		padding-right: 10rpx;
+		font-weight: bold;
+	}
+
+	image {
+		width: 120rpx;
+		height: 120rpx;
+	}
+
+	.item-detail-right {
+		display: flex;
+		flex-direction: column;
+		justify-items: right;
+		width: 110rpx;
+	}
+
+	.more-location-icon {
+		width: 30rpx;
+		height: 30rpx;
+		padding: 0 20rpx;
+	}
+
+	.tabbar {
+		width: 100%;
+		height: 220rpx;
+		background-color: #ffffff;
+		position: fixed;
+		bottom: -5rpx;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: space-between;
+		margin-left: -16rpx;
+		z-index: 10;
+	}
+
+	.total-price {
+		display: flex;
+		font-size: 28rpx;
+		font-weight: bold;
+		text-align: right;
+		margin-bottom: 20rpx;
+	}
+
+	.submit-btn {
+		width: 240rpx;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background-color: #1296DB;
+		color: #fff;
+		font-size: 32rpx;
+		font-weight: bold;
+		height: 100rpx;
+		line-height: 100rpx;
+		text-align: center;
+		border-radius: 16rpx;
+		margin-right: 20rpx;
+		margin-left: 20rpx;
+	}
+
+	.total-price-num {
+		color: red;
+		font-size: 48rpx;
+		font-weight: bold;
+		padding-bottom: 20rpx;
+	}
+
+	.total-item {
+		display: flex;
+		align-items: center;
+	}
+
+	.caution-card {
+		display: flex;
+		flex-direction: column;
+		align-items: left;
+		background-color: #fff;
+		padding: 20rpx;
+		margin-bottom: 20rpx;
+		border-radius: 24rpx;
+		margin: 24rpx 0;
+	}
+
+	.caution-title {
+		color: #1296DB;
+		font-size: 28rpx;
+		font-weight: bold;
+	}
+
+	.caution-content {
+		color: #636263;
+		font-size: 24rpx;
+	}
+
+	.checkbox-item {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 36rpx 0 10rpx 0;
+	}
+
+	.tabbar-commit {
+		display: flex;
+		margin-left: auto;
+		margin-bottom: 20rpx;
+	}
+
+	.blank {
+		height: 200rpx;
+	}
+
+	.memo {
+		font-size: 24rpx;
+		font-weight: bold;
+		margin-left: -10rpx;
+	}
+
+	.card-shadow {
+		box-shadow: 2px -1px 10px 0.5px rgba(0, 0, 0, 0.2);
+	}
+
+	.memo-card {
+		border-radius: 24rpx;
+	}
+
+	.path-item {
+		padding: 30rpx 20rpx;
+		margin: 20rpx;
+		border-bottom: 2rpx solid #1296DB;
+		border-radius: 10px;
+		background-color: #ffffff;
+		color: #ffffff;
+	}
+
+	.item-main {
+		display: flex;
+		align-items: center;
+	}
+
+	.active {
+		padding: 0 3rpx;
+		border: 1px solid #1296DB;
+		color: #1296DB;
+		border-radius: 20rpx;
+		font-size: 16rpx;
+	}
+
+	.item-name {
+		padding-right: 10rpx;
+		font-size: 28rpx;
+		color: #000;
+	}
+	
+	.shop-title{
+		display: flex;
+		align-items: center;
+		padding-left: 10rpx;
+	}
+	
+	.shipping-fee-card{
+		background-color: #FFF;
+		border-radius: 24rpx;
+		padding: 20rpx 0;
+		margin-bottom: 20rpx;
+	}
+	
+	.shipping-select{
+		display: flex;
+		width: 520rpx;
+		padding: 0 20rpx;
+	}
+	
+</style>

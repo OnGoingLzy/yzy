@@ -1,0 +1,144 @@
+<template>
+	<view>
+		
+	</view>
+</template>
+
+<script>
+	import request from '@/common/api/request.js'
+	const plugin = requirePlugin('yh-pay-plugin')
+	export default {
+		data() {
+			return {
+				createOrderParam:null,
+				cash_url: '', // 订单支付路径,
+				eventChannel: null,
+			}
+		},
+		onLoad: function (option) {
+			
+			if(option.orderInfo){
+				this.createOrderParam = JSON.parse(decodeURIComponent(option.orderInfo));
+				var that = this
+				console.log(that.createOrderParam)
+				uni.login({
+				    success: (res) => {
+				        plugin.init({
+				            url: "https://zhuguangcao.mynatapp.cc/yy", // 服务器接口地址
+				            dppSyscode: that.createOrderParam.dppSyscode, // 支付平台系统编号
+				            dsmpSyscode: '1002100022', // 银医平台系统编号
+				            authCode: res.code ,// 用户登录凭证
+							chnlAppId: 'wxe7c826a1a5e00055',
+							acssToken: that.createOrderParam.acssToken
+				        }).then( _=> {
+				            console.log('插件初始化成功1')
+							that.CreateOrder()
+				        }).catch( err =>{
+				            console.log(`插件初始化失败1：${err.errMsg}`)
+				        })
+				    },
+				})
+			}
+			
+			
+		},
+		methods: {
+			CreateOrder(){
+				var that = this
+				plugin.createOrderDsmp({
+					medins_code:this.createOrderParam.medins_code,
+					medins_name:this.createOrderParam.medins_name,
+					opter_type:"102",
+					opter_id:this.createOrderParam.yinhaiCreateOrderObject.acss_sys_ord_no,
+					opter_name:"***",
+					input_data:this.createOrderParam.yinhaiCreateOrderObject
+				}).then( res => {
+					console.log(res)
+				    console.log(res.data.cash_url)
+					var	cash_url= 'plugin://yh-pay-plugin/'+res.data.cash_url
+					console.log(cash_url) 
+					//保存数据到服务器
+					 that.saveResData(res.data,this.createOrderParam.yinhaiCreateOrderObject.acss_sys_ord_no,cash_url)
+				    // 打开支付功能页
+				    //that.testOpenPay(cash_url)
+				}).catch( err =>{
+					console.log(`err:${JSON.stringify(err)}`)
+				})
+			},
+			async saveResData(orderInfo,main_order_id,cash_url){
+				var that = this
+				const url = '/api/trade/updateYinHaiOrderInfo';
+				const method = 'POST';
+				const data = {
+					orderInfo : orderInfo,
+					main_order_id:main_order_id
+				};
+				try {
+					const response = await request('yzy_app', url, method, data);
+					console.log(response); //统一格式：{"data":{}, "flag":99, "result":"成功"}
+					if (response.code == 99) {
+						
+						//更新信息成功才能进行下一步
+						that.OpenPay(cash_url,main_order_id)
+					} else {
+						
+					}
+				} catch (error) {
+					console.log(error);
+				}
+			},
+			OpenPay(cash_url,main_order_id){
+				var that = this
+				console.log(cash_url) //plugin://yh-pay-plugin/order-pay?pay_token=0276c75500594df6898906ae3b4ab98e&unified_token=8f7381fdb59147b7b886d537469888f8
+				uni.navigateTo({
+					url: cash_url,
+					events: {
+						wxPayEvent: function(data) {
+				  			console.log(`wxPayEvent data:${JSON.stringify(data)}`)
+				  			wx.requestPayment({
+				    			...data,
+				    			complete(res){
+				      				that.eventChannel.emit('wxPaymentComplete', res)
+				      				console.log(`微信支付操作完成 res: ${JSON.stringify(res)}`)
+									console.log(res)
+									if(res.errMsg=="requestPayment:fail cancel"){
+											//requestPayment:ok
+									}else{
+										that.queryOrder(main_order_id)
+										uni.redirectTo({
+											url:'/pages/user_order/user_order'
+										})
+									}
+									
+									
+									
+				    			}
+				  			})
+						}
+					},
+					success: function(res) {
+						// 可通过eventChannel向被打开页面传送数据
+						that.eventChannel = res.eventChannel
+					}
+				})
+			},
+			async queryOrder(main_order_id){
+				const url = '/api/Trade/requestYinhaiQueryOrder';
+				const method = 'POST'; 
+				const data = {
+					main_order_id: main_order_id
+				};
+				try {
+					const response = await request('yzy_app', url, method, data);		//统一格式：{"data":{}, "flag":99, "result":"成功"}
+					console.log(response)
+				} catch (error) {
+					console.log(error);
+				}
+			},
+		}
+	}
+</script>
+
+<style>
+
+</style>

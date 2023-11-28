@@ -1,0 +1,154 @@
+<template>
+	<view>
+		<h1 style="padding-bottom: 24rpx;">商品验收标准</h1>
+		<view class="default">云找药平台旨在规范和完善商品交易的整体流程，就用户验收商品事项制定《商品验收标准》，用户在收到商品后，须严格按照本标准去核验商品，确认无误后方可签收、确认收货。</view>
+		<view class="default">根据《药品经营质量管理规范》第三章第八节第一百七十三条规定“除药品质量原因外，药品一经售出，不得退换。”出于药品特殊性的考虑，用户须严格仔细完成药品的检验及签收流程。</view>
+		<view class="default">非药品商品，根据《消费者权益保护法》第二十五条规定用户有权自收到之日起7日内退货。</view>
+		<div class="numbered-list">
+			<h2>一、验收流程及内容</h2>
+			<ol class="custom-list">
+				<li>承运人负责配送包事至承运单指定地点，用户须当场核对运单号无误，并完成商品检验及签收。</li>
+				<li>用户须根据下述步骤进行商品检验，并根据下述提示内容完成商品各项内容的检验。</li>
+				<div class="step-title">步骤一：确认包裹外观</div>
+				<div>检验内容：包括确认是否存在破损、变形、水渍、污染滴漏等影影响使用的情况。</div>
+				<div class="step-title">步骤二：确认订单信息</div>
+				<div>检验内容：包括核对发货单，确认订购的商品数量与订单详细中载明的信息是否一致。</div>
+				<div class="step-title">步骤三：确认商品信息</div>
+				<div>检验内容：包括批准文号、通用名称、生产企业名称、效期、剂型和规格等信息与订单详细中载明的是否一致。</div>
+			</ol>
+		</div>
+		<div class="numbered-list">
+			<h2>二、拒收退货流程</h2>
+			<ol class="custom-list">
+				<li>若在当面验收时，检验过程中发现存在问题的，须停止后续检验步骤，直接拒收，并申请退款。款项全额退回，药品回退至药店；用户可至云找药商城重新下单。</li>
+				<li>若商家拒绝退款，可向平台申诉，由云找药商城客服介入，根据用户提交的资料进行核验，核实无误后方可退款。</li>
+				<li>若核验为不实信息，根据《药品经营质量管理规范》第一章第八节第一百七十三条规定“除药品质量原因外，药品经售出，不得退换。”即使药品拒收退回，药品亦已进入流通市场，流通过程中产生的任何费用折损，由用户自行承担，不可退款。
+				</li>
+				<view>拒收退款流程如下：</view>
+				<div class="step-title">步骤一</div>
+				<div>参照上述“验收流程及内容”，出现任何异常验收问题，当场拒收，并及时拍照留证，用于后续退款证明的核实。</div>
+				<div class="step-title">步骤二</div>
+				<div>用户将包裹直接交由该承运人当场退回并在承运单上注明拒收原因（包括但不限于破损漏发、错发等原因）。</div>
+				<div class="step-title">步骤三</div>
+				<div>用户在线提交退货申请及相关证明，商家审核通过后，全部款项即可退回（订单不支持部分退款，故不可保留部分货品，对其余商品做退款处理）。</div>
+			</ol>
+		</div>
+		<div class="numbered-list">
+			<h2>三、签收并确认收货</h2>
+			<ol class="custom-list">
+				<li>用户确认签收，即视为完成上述检验流程，并确认检查内容均无误。</li>
+				<li>用户委托他人代为签收，可视为已知晓《商品验收标准》；委托人完成商品签收时，即视为已完成商品检验并确认无误。</li>
+				<li>用户未当场签收，而要求承运人将包裹交由门卫、公司前台、快递柜等场所的，即视为完成签收，同时默认用户已完成商品检验并确认无误。</li>
+				<li>用户完成商品签收则默认收货成功，系统自动确认收货。</li>
+				<li>用户完成签收并确认收货后，不得退货。</li>
+				<li>用户签收完成后，仅出现第四条“特殊情形”的，方可退货或响应召回要求。</li>
+			</ol>
+		</div>
+		<div class="numbered-list">
+			<h2>四、特殊情形</h2>
+			<ol class="custom-list">
+				<li>经权威质量管理部门检验，确属商品本身存在质量问题，可直接进行药品质量申诉，平台客服介入，申请人须提交权威部门提供的检验报告，平台核实无误后由商家承担该药品价格十倍赔偿，同时，用户因此所产生的误工费，检验费等相关费用均由商家承担。
+				</li>
+				<li>用户完成商品签收后3日内，打开包裹发现“验收流程及内容”步骤二、步骤三所需检验内容存在问题，同时，提供初次开箱验货全程视频，并经平台核实视频实属真实。</li>
+				<li>根据《中华人民共合国药品管理法》第八十三条：“药品上市许可持有人应当对已上市药品的安全性、有效性和质量可控性定期开展上市后评价。必要时，国务院药品监督管理部门可以责令药品上市许可持有人开展上市后评价或者直接组织开展上市后评价。经评价，对疗效不确切、不良反应大或者因其他原因危害人体健康的药品，应当注销药品注册证书。已被注销药品注册证书的药品，不得生产或者进口、销售和使用。已被注销药品注册证书、超过有效期等的药品，应当由药品监督管理部门监督销毁或者依法采取其他无害化处理等措施。”等规定，国家药品监督管理局发布公告的商品（如停售、召回等）。
+				</li>
+				<li>出现上述情形的，用户在线提交退退货申请及相关证明明商家审核通过后，款项即可全额退回。</li>
+			</ol>
+			<view class="default">注：为了证实情况是否属实，同时以便商家快速的做出判断、及时处理；期间需要提供实物照片的，用户须积极配合。</view>
+		</div>
+		<div class="numbered-list">
+			<h2>五、商品验收示例</h2>
+			<view class="default">药品为特殊商品，根据《药品经营质量管理规范》第二章第八节第一百七十三条规定“除药品质量原因外，药品一经售出，不得退换。”</view>
+			<view class="default">包裹送达时，用户须当面完成验收，请根据以下流程，完成商品各项内容的核验签收。</view>
+			<ol class="custom-list" style="padding-top: 16rpx; padding-bottom: 16rpx;">
+				<div class="step-title">步骤一：确认包裹外观</div>
+				<div>确认包裹是否存在破损、变形、水渍、污染、滴漏等影响使用的情况，若有异，直接当面拒收。</div>
+				<div class="step-title">步骤二：确认订单信息</div>
+				<div>核对发货单，确认订购的商品数量与订单详细中载明的信息是否一致，若有异，直接当面拒收。</div>
+				<div class="step-title">步骤三：确认商品信息</div>
+				<div>确认商品批准文号、通用名称、生产企业名称、效期、剂型和规格等信息与订单详细中载明的是否一致，若有异，直接当面拒收。</div>
+			</ol>
+			<view class="default">当面验收时，请确保以上内容均验收无误，成功签收，则视为“确认收货”。</view>
+		</div>
+		<view style="height: 50rpx;"></view>
+	</view>
+</template>
+
+<script>
+	export default {
+		data() {
+			return {
+
+			}
+		},
+		methods: {
+
+		}
+	}
+</script>
+
+<style scoped>
+	h1 {
+		font-size: 40rpx;
+		font-weight: bold;
+		text-align: center;
+		padding: 16rpx 0 0 0;
+	}
+
+	h2 {
+		font-size: 36rpx;
+		font-weight: bold;
+		text-align: left;
+		padding: 36rpx 20rpx 0 20rpx;
+	}
+
+	.warn {
+		color: red;
+		font-size: 30rpx;
+		font-weight: bold;
+		padding-left: 20rpx;
+		padding-right: 20rpx;
+	}
+
+	.default {
+		padding-left: 20rpx;
+		padding-right: 20rpx;
+	}
+
+	ol {
+		padding: 0 20rpx;
+	}
+
+	.numbered-list {
+		margin-bottom: 40rpx;
+		/* 调整列表之间的间距 */
+	}
+
+	.numbered-list .custom-list {
+		counter-reset: item-counter;
+		/* 为每个列表设置独立的计数器 */
+	}
+
+	.numbered-list .custom-list li {
+		list-style-type: none;
+		/* 去除默认列表样式 */
+		position: relative;
+		padding-left: 40rpx;
+		/* 留出空间给序号和点，调整此值 */
+		margin-bottom: 10rpx;
+		/* 调整列表项间的间距 */
+	}
+
+	.numbered-list .custom-list li::before {
+		content: counter(item-counter) ".";
+		/* 使用计数器的值加上点作为伪元素内容 */
+		counter-increment: item-counter;
+		/* 增加计数器值 */
+		position: absolute;
+		left: 0;
+	}
+
+	.step-title {
+		font-weight: bold;
+	}
+</style>

@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "搜索",
+  "enablePullDownRefresh": false,
+  "usingComponents": {
+    "goods-list": "/components/goods_order/goods_list/goods_list"
+  }
+}

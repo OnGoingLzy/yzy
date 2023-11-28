@@ -1,0 +1,71 @@
+<template>
+	<view>
+		久远银海
+		<button @click="testApi">测试接口</button>
+		<button @click="testQueryOrder">测试插件-查询订单</button>
+	</view>
+</template>
+
+<script>
+	import request from '@/common/api/request.js'
+	const yinHaiPlugin = requirePlugin('yinHaiPlugin')
+	export default {
+		data() {
+			return {
+				
+			}
+		},
+		onLoad() {
+			uni.login({
+			    success: (res) => {
+			        yinHaiPlugin.init({
+			            url: "https://zhuguangcao.mynatapp.cc/yy", // 服务器接口地址
+			            dppSyscode: 'P53050201208111200', // 支付平台系统编号
+			            dsmpSyscode: '1002100022', // 银医平台系统编号
+			            authCode: res.code // 用户登录凭证
+			        }).then( _=> {
+			            console.log('插件初始化成功')
+			        }).catch( err =>{
+			            console.log(`插件初始化失败：${err.errMsg}`)
+			        })
+			    },
+			})
+		},
+		methods: {
+			async testApi(){
+				const url = '/api/Trade/yinhaiTest';
+				const method = 'POST'; 
+				const data = {
+					parentId: '0'
+				};
+				try {
+					const response = await request('yzy_app', url, method, data);		//统一格式：{"data":{}, "flag":99, "result":"成功"}
+					console.log(response)
+				} catch (error) {
+					console.log(error);
+				}
+			},
+			testCreateOrder(){
+				
+			},
+			testQueryOrder(){
+				yinHaiPlugin.queryOrderDsmp ({
+				    medins_code:"P53050201208",
+				    medins_name:"云南省医药有限公司新特药保山零售店",
+				    opter_type:"102",
+				    opter_id:"530002",
+				    opter_name:"lzy",
+				    input_data: {
+				        plaf_ord_no: 'PP202311011921393941'
+				    }
+				}).then( res => {
+				    console.log(`res:${JSON.stringify(res)}`)
+				})
+			}
+		}
+	}
+</script>
+
+<style>
+
+</style>

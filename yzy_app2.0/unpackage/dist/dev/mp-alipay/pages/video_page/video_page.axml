@@ -1,0 +1,1 @@
+<view><view style="width:94vw;padding:3vw;background:white;border-radius:15px;text-align:center;"><view><text style="font-size:18px;font-weight:bold;">视频播放</text></view><view></view><video controls="{{true}}" src="{{url}}" autoplay="true" ref="__r" data-ref="videoPlayer"></video></view></view>

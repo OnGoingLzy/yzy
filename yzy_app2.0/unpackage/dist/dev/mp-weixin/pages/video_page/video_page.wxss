@@ -1,0 +1,8 @@
+
+.swiper-2{
+	width: 96vw;
+	height: 43vw;
+	border-radius: 15px;
+	text-align: center;
+}
+

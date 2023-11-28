@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "我的处方",
+  "enablePullDownRefresh": true,
+  "usingComponents": {
+    "recipe-card": "/components/recipe/recipe_card"
+  }
+}

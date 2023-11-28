@@ -1,0 +1,98 @@
+<template>
+	<view>
+		<view class="container">
+			<view class="header-container">
+				<text style="font-size:18px;font-weight: bold;">{{shopName + '\n'}}</text>
+				<text style="font-size: 13px;">资质校验 | 正品承诺</text>
+			</view>
+			<view v-for="(item,i) in certificate" :key="i" class="certifcate-container">
+				<text style="font-size: 16px;font-weight: bold;">{{item.shopCertificate + '\n'}}</text>
+				<text style="font-size: 13px;color: #bcbcbc;">{{item.shopCertificateNo}}</text>
+				<image :src="item.shopCertificateUrl ? 'http://images.yndzyf.com/getimage.ashx?mlszh='+item.shopCertificateUrl : '/static/icon/shop.svg'" style="width: 100%;"></image>
+			</view>
+		</view>
+	</view>
+</template>
+
+<script>
+	import request from '@/common/api/request.js'
+	export default {
+		data() {
+			return {
+				shopName:{},
+				shopId:{},
+				certificate:[{
+						id:1,
+						shopCertificate:'营业执照',
+						shopCertificateNo:'914525DQSSNASD231',
+						shopCertificateUrl:'/static/icon/shop.svg',
+					},
+					{
+						id:2,
+						shopCertificate:'药品经营许可证',
+						shopCertificateNo:'4525DQSSNASD231',
+						shopCertificateUrl:'/static/icon/shop.svg',
+					},
+				]
+					
+			}
+		},
+		onLoad: function (option) {
+			//解析传过来的对象
+			this.shopName = JSON.parse(decodeURIComponent(option.shopName));
+			this.shopId = JSON.parse(decodeURIComponent(option.shopId));
+		},
+		mounted() {
+			this.getShopCertificate()
+		},
+		methods: {
+			async getShopCertificate(){
+				console.log("获取门店资质")
+				const url = '/api/shop/getShopCertificate';
+				const method = 'POST'; 
+				const data = {
+					shopId: this.shopId
+				};
+				try {
+					const res = await request('yzy_app', url, method, data);
+					console.log(res);		//统一格式：{"data":{}, "flag":99, "result":"成功"}
+					if(res.code == 99 && res.data.data!=null){
+						this.certificate = res.data.data
+					}
+					else {
+						
+					}
+				} catch (error) {
+					
+				}
+			}
+		}
+	}
+</script>
+
+<style lang="scss">
+.container{
+	background: #efefef;
+	border-radius: 20px 20px 0 0;
+	min-height: 100px;
+	width: 100vw;
+}
+.header-container{
+	width: 96vw;
+	background: white;
+	border-radius: 20px 20px 0 0;
+	padding: 2vw;
+}
+.certifcate-container{
+	margin: 2vw 3vw 0 3vw;
+	padding: 2vw;
+	min-height: 100px;
+	border-radius: 15px;
+	background: white;
+}
+page{
+	background: #efefef;  /* fallback for old browsers */
+	background: -webkit-linear-gradient(to bottom, #1296DB, #efefef);  /* Chrome 10-25, Safari 5.1-6 */
+	background: linear-gradient(to bottom, #1296DB, #efefef); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+}
+</style>

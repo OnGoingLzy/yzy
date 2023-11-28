@@ -1,0 +1,87 @@
+<template>
+	<view class="recipe-card">
+		<view>
+			<text v-text="'问诊单号：'+recipe.clinicId" style="font-size: 14px;"></text>
+			<text v-text="'\n处方开具时间：'+recipe.issueTime" style="font-size: 13px;color: #999999;"></text>
+			<text v-text="'\n患者：'" style="color: gray;"></text>
+			<text v-text="recipe.patName" style="font-size: 13px;"></text>
+		</view>
+		<view class="line" style="height: 1upx;background-color: #ccc;margin-top: 5px;"></view>
+		<view :style="recipe.status=='可使用'? 'background: #f3fff9;':'background: #fff;'" class="recipe-box" @click="showRecipe">
+			<view style="width: 80%;">
+				<view style="display:flex;align-items:center;text-align: center;">
+					<image src="../../static/icon/cf.png" class="icon-class" style="width: 16px;height: 16px;"></image>
+					<text style="font-size: 13px;color: gray;">药品处方\n</text>
+				</view>
+				
+				<text v-text="recipe.drugName+'\n'" style="font-weight: bold;"></text>
+				<text v-text="recipe.drugSpecification+'\n'" style="font-size: 13px;color: gray;"></text>
+			</view>
+			<view style="width: 20%;text-align: right;display: grid;;">
+				<view>
+					<text v-text="recipe.status" :style="recipe.status=='可使用'? 'color: #0ec385':'color: gray'"></text>
+				</view>
+				<view style="    display: flex; justify-content: flex-end; align-items: flex-end;">
+					<text v-text="'x'+recipe.amount"></text>
+				</view>
+			</view>
+		</view>
+		<view v-if="recipe.status=='可使用'" style="    display: flex;justify-content: flex-end;padding: 5px;">
+			<button class="mini-btn" type="warn" size="mini" style="margin: initial;    border-radius: 50px;"
+				@click="toShoppingCart">前往购物车支付</button>
+		</view>
+		
+	</view>
+</template>
+
+<script>
+	export default {
+		name:"recipe_card",
+		props: {
+			recipe: {
+				// type: Object,
+				default: null,
+			}
+		},
+		methods:{
+			toShoppingCart(){
+				uni.reLaunch({
+					url:'/pages/shopping_cart/shopping_cart'
+				})		
+			},
+			showRecipe(){ 
+				var that = this
+				// 预览图片
+				uni.previewImage({
+					urls: [that.recipe.recipePdfImgUrl],
+					longPressActions: {
+						itemList: ['发送给朋友', '保存图片', '收藏'],
+						success: function(data) {
+							
+						},
+						fail: function(err) {
+							console.log(err.errMsg);
+						}
+					}
+				});
+			},
+		},
+		data() {
+			return {
+				
+			};
+		}
+	}
+</script>
+
+<style lang="scss">
+.recipe-box{
+	padding: 5px;display: flex;border-radius: 5px;margin-top: 5px;
+}	
+.recipe-card{
+	background: white;
+	border-radius: 10px;
+	width: 92vw;
+	padding: 2vw;
+}
+</style>

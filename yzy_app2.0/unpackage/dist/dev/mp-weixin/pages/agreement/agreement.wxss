@@ -1,0 +1,46 @@
+
+._h1.data-v-1a454adc{
+	font-size: 40rpx;
+	font-weight: bold;
+	text-align: center;
+	padding: 16rpx 0 0 0;
+}
+._h2.data-v-1a454adc{
+	font-size: 36rpx;
+	font-weight: bold;
+	text-align: left;
+	padding: 36rpx 20rpx 0 20rpx;
+}
+.warn.data-v-1a454adc{
+	color: red;
+	font-size: 30rpx;
+	font-weight: bold;
+	padding-left: 20rpx;
+	padding-right: 20rpx;
+}
+.default.data-v-1a454adc{
+	padding-left: 20rpx;
+	padding-right: 20rpx;
+}
+._ol.data-v-1a454adc{
+	padding: 0 20rpx;
+}
+.numbered-list.data-v-1a454adc {
+  margin-bottom: 40rpx; /* 调整列表之间的间距 */
+}
+.numbered-list .custom-list.data-v-1a454adc {
+  counter-reset: item-counter; /* 为每个列表设置独立的计数器 */
+}
+.numbered-list .custom-list ._li.data-v-1a454adc {
+  list-style-type: none; /* 去除默认列表样式 */
+  position: relative;
+  padding-left: 40rpx; /* 留出空间给序号和点，调整此值 */
+  margin-bottom: 10rpx; /* 调整列表项间的间距 */
+}
+.numbered-list .custom-list ._li.data-v-1a454adc::before {
+  content: counter(item-counter) "."; /* 使用计数器的值加上点作为伪元素内容 */
+  counter-increment: item-counter; /* 增加计数器值 */
+  position: absolute;
+  left: 0;
+}
+

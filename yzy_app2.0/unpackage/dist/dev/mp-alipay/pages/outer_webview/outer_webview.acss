@@ -1,0 +1,13 @@
+
+.title-navi {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 10rpx 26rpx 20rpx 26rpx;
+	background-color: white;
+}
+.title-navi-next {
+	width: 20rpx;
+	height: 20rpx;
+}
+

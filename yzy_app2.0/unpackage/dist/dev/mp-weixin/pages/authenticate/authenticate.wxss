@@ -1,0 +1,40 @@
+
+._h1.data-v-2f1d2a26{
+	font-weight: bold;
+	font-size: 20px;
+	text-align: center;
+	padding-top: 20px;
+	padding-bottom: 35px;
+	color: #353535;
+}
+._h2.data-v-2f1d2a26{
+	color: #353535;
+	padding-left: 10px;
+	padding-right: 7px;
+}
+.main-content.data-v-2f1d2a26{
+	font-weight: bold;
+	font-size: 17px;
+	padding-top: 10px;
+	padding-bottom: 10px;
+}
+.content-guide.data-v-2f1d2a26{
+	padding-bottom: 20px;
+}
+._h3.data-v-2f1d2a26{
+	color: #353535;
+	padding-left: 35px;
+	padding-right: 10px;
+	padding-bottom: 8px;
+}
+._h4.data-v-2f1d2a26{
+	padding-left: 20rpx;
+}
+.bottom-content.data-v-2f1d2a26{
+	text-align: left;
+}
+.bottom.data-v-2f1d2a26{
+	padding-top: 30px;
+	padding-bottom: 50px;
+}
+

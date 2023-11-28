@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "历史预订",
+  "enablePullDownRefresh": false,
+  "usingComponents": {
+    "history-list": "/components/goods_order/history_list/history_list"
+  }
+}

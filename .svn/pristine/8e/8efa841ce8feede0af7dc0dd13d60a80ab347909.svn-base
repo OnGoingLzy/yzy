@@ -1,0 +1,81 @@
+<template>
+	<view>
+		<view class="shop-container">
+			<view class="left-container">
+				<view style="">
+					<text v-text="shop.simplifyShopName"></text>
+				</view>
+				<view style="padding-left: 5px;">
+					<text v-text="shop.shopAddress" style="font-size: 13px;color: #8b8b8b;"></text>
+					<text style="color: #c01a04;" v-text="'\n距您'+shop.distance+'km'" v-if="shop.distance"></text>
+				</view>
+				<view style="">
+					<text v-text="'联系电话: '+shop.shopPhone" style="font-size: 13px;color: #8b8b8b;"></text>
+				</view>
+
+			</view>
+			<view class="right-container">
+				<view style="text-align: right;">
+					<text v-text="'￥'+shop.price" class="goods-price"></text>
+				</view>
+				<view style="justify-content: flex-end;display: flex;">
+					<view><text style="color: #8b8b8b;">库存: </text></view>
+					<view style="width: 40px;"><text v-text="shop.inventory==null ? 0:shop.inventory" style="color: #c01a04;"></text></view>
+					
+				</view>
+			</view>
+		</view>
+	</view>
+</template>
+
+<script>
+	export default {
+		name:"shopCard",
+		props: {
+			shop: {
+				type: Object,
+				default: {}
+			},
+			goods:{
+				type: Object,
+				default: null
+			}
+		},
+		data() {
+			return {
+				
+			};
+		},
+		mounted() {
+			
+		},
+		methods:{
+			
+		},
+	}
+</script>
+
+<style lang="scss">
+.shop-container{
+	padding: 2vw;
+	border-radius: 20px;
+	display: flex;
+	min-height: 80px;
+}
+
+.left-container {
+	width: 62vw;
+	display: flex;
+	flex: 1;
+	flex-direction: column;	   
+}
+.right-container{
+	text-align: right;
+	width: 35vw;
+}
+.goods-price {
+	color: #c01a04;
+	font-size: 15px;
+	font-family: fantasy;
+}
+</style>

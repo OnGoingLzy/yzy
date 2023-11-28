@@ -1,0 +1,29 @@
+
+.parent-box{
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+}
+.success-icon {
+	width: 200rpx;
+	height: 200rpx;
+	padding-top: 180rpx;
+}
+.pay-success{
+	font-size: 48rpx;
+	font-weight: bold;
+	padding-top: 40rpx;
+}
+.pay-success-tips{
+	font-size: 32rpx;
+	color: #636263;
+}
+.button-list{
+	padding-top: 60rpx;
+	width: 90%;
+}
+.go-to{
+	margin-bottom: 30rpx;
+}
+

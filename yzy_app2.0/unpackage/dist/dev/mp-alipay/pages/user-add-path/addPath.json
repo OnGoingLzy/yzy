@@ -1,0 +1,8 @@
+{
+  "defaultTitle": "新增地址",
+  "titleBarColor": "#1296DB",
+  "usingComponents": {
+    "auto-parse-address": "/components/uni/auto-parse-address/auto-parse-address",
+    "mpvue-picker": "/components/uni/mpvue-citypicker/mpvueCityPicker"
+  }
+}

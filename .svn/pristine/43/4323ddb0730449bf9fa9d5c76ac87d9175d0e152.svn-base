@@ -1,0 +1,686 @@
+<template>
+	<view class="content">
+		<view style="position: fixed;z-index: 999;top: 0;">
+			<view class="search-container">
+				<view class="search-input">
+					<view style="height: 100%;width: 40px;text-align: left;margin-left: 10px;display: flex;align-items: center;" >
+					<image src="../../static/icon/ss.png" style="width: 22px;height: 22px;"></image>
+					</view>
+					<input type="text" style="width: 80%;" v-model="searchContent" placeholder="药名、品牌、厂家、症状" ref="inputRef" :focus="focus" @confirm="searchGoods('','')"/>
+					<view style="height: 100%;width: 40px;text-align: right: ;" >
+					<text class="voice-icon" @click="clearSearchContent">×</text>
+					</view>
+				</view>
+				<view style="display: flex;align-item:center;width: 10vw;justify-content: center;">
+					<text style="color: white;line-height:31px" @click="searchGoods('','')">搜索</text>
+				</view>
+			</view>
+			
+			<view class="choice-bar-container" v-show="showView=='view3'">
+				<view class="choice-bar-item-box" :class="{activeBar : choiceBar === 'test0'}" @click="selectBar('test0')">
+					<text ref="text0"  :style="{ color: choiceBar === 'test0' ? '#1296DB' : 'black' }" >默认</text>
+				</view>	
+				<view class="choice-bar-item-box" :class="{activeBar : choiceBar === 'test1'}" @click="selectBar('test1','price')">
+					<view style="display: flex;align-items: center;">
+						<text ref="test1"  :style="{ color: choiceBar === 'test1' ? '#1296DB' : 'black' }">价格</text>
+							<text class="mini-text" :style="{ color: searchObj.sortRule === '价格降序' ? '#1296DB' : '#777777' }" v-if="searchObj.sortRule === '价格降序'">↓</text>
+							<text class="mini-text" :style="{ color: searchObj.sortRule === '价格升序' ? '#1296DB' : '#777777' }" v-if="searchObj.sortRule === '价格升序'">↑</text>
+					</view>
+					
+				</view>
+				
+				<!-- <view class="choice-bar-item-box" :class="{activeBar : choiceBar === 'test2'}" @click="selectBar('test2','shopsNum')">
+					<view style="display: flex;align-items: center;">
+						<text ref="test1"  :style="{ color: choiceBar === 'test2' ? '#1296DB' : 'black' }">报价数</text>
+							<text class="mini-text" :style="{ color: searchObj.sortRule === '报价数降序' ? '#1296DB' : '#777777' }">↑</text>
+							<text class="mini-text" :style="{ color: searchObj.sortRule === '报价数升序' ? '#1296DB' : '#777777' }">↓</text>
+					</view>
+				</view> -->
+				
+				<view class="choice-bar-item-box" @click="selectBar('test3')">
+					<text ref="text3" v-text="showType">大图</text>
+				</view>	
+				<view class="choice-bar-item-box" @click="selectBar('test4')">
+					<text ref="text4"  :style="{ color: !useFilter ? 'black' : '#1296DB' }">筛选</text>
+				</view>
+			</view>
+		</view>
+		<!-- view1 搜索框什么都不输入时展示该页面 -->
+		<view class="view1" v-show="showView=='view1'">
+
+			<view class="history-box">
+				<view class="history-title">
+					<text style="font-weight: bold;">热销品种</text>
+					<image class="icons" src="/static/icon/fire.png"></image>
+					<!-- <uni-icons type="fire" size="17"></uni-icons> -->
+				</view>
+				<!-- 列表区域 -->
+				<view class="history-list">
+					<uni-tag :text="item.genericName" v-for="(item, i) in hotList" :key="i" @click="searchGoods(item.genericName,'')" 
+					custom-style="background-color: #ffffff; border-color: #fcfdff; color: #1b1b1b;"
+					>		
+					</uni-tag>
+				</view>
+			</view>
+			
+			<view class="history-box">
+				<view class="history-title">
+					<text style="font-weight: bold;">搜索历史</text>
+					<uni-icons type="trash" size="17" @click="clean"></uni-icons>
+				</view>
+				<!-- 列表区域 -->
+				<view class="history-list">
+					<uni-tag :text="item" v-for="(item, i) in historyList" :key="i" @click="searchGoods(item,'')"></uni-tag>
+				</view>
+			</view>
+		</view>
+		
+		<!-- view2 搜索框有内容时显示可能出现的药品内容 -->
+		<view class="view1" v-show="showView=='view2'">
+			<text style="font-weight: bold;font-size:17px">您可能要搜:</text>
+			<view v-for="(item,i) in maySearchList" :key="i" style="padding: 5px;font-size:17px" @click="searchGoods(item.genericName,'')">
+				<text v-text="item.genericName"></text>
+			</view>
+		</view>
+		
+		<!-- view3 搜索后展示商品列表 -->
+		
+		<view class="view1" v-show="showType=='列表' && showView=='view3'" style="margin-top:100px">
+			
+			<view v-for="(goods, i) in filteredSearchResultsList" :key="i" @click="toGoodsSellShop(goods)" style="background: white;border-radius: 15px;">
+				<!-- <goodsCard :goods="goods" ></goodsCard> -->
+				<goods-card :goods="goods" ></goods-card>		
+			</view>
+			<view v-if="searchResults.length==0" style="text-align: center;">
+				<view style="">
+					<image src="../../static/img/empty3.svg" style="width: 30vw;height: 30vw;margin-top: 60px;"></image>
+				</view>
+				
+				<view>
+					<text style="color: gray;">没有查询到数据</text>
+				</view>
+				
+			</view>
+		</view>
+		<view class="view2" v-show="showType=='大图' && showView=='view3'" style="margin-top:100px">
+			
+			<view v-for="(goods, i) in filteredSearchResultsList" :key="i" @click="toGoodsSellShop(goods)" class="bigImg-box">
+				<!-- <goodsCard :goods="goods" ></goodsCard> -->
+				<goods-card2 :goods="goods" ></goods-card2>		
+		
+			</view>
+		</view>
+		
+		<view style="position: fixed;z-index: 9999;top: 0;">
+			<uni-popup ref="popup" type="right" background-color="#fff" >
+				<view style="width: 70vw;padding: 5px;height: 80vh;">
+					<text style="font-weight: bold;">生产厂商筛选</text>
+					<view style="padding: 5px;display: flex;flex-wrap: wrap;overflow: auto;max-height: 40vh;">
+						<uni-tag   v-for="(item,i) in filterRule.manufacturer" :key="i" :text="item" style="margin: 5px;" @click="clickFilterRule(item,i,'生产厂商')" :type="getTagType(item,'生产厂商')"></uni-tag>
+					</view>
+					<text style="font-weight: bold;">品牌名筛选</text>
+					<view style="padding: 5px;display: flex;flex-wrap: wrap;overflow: auto;max-height: 40vh;">
+						<uni-tag   v-for="(item,i) in filterRule.goodsName" :key="i" :text="item" style="margin: 5px;" @click="clickFilterRule(item,i,'品牌名')" :type="getTagType(item,'品牌名')"></uni-tag>
+					</view>
+				</view>
+				<view class="filter-button-container">
+					<button type="primary" @click="this.$refs.popup.close()" size="mini">确定</button>
+					<button type="primary" @click="resetFilterRule" size="mini">重置</button>
+				</view>
+			</uni-popup>
+		</view>
+		
+		
+	</view>
+</template>
+
+<script>
+	import goodsCard from '@/components/goods/goods_card.vue';
+	import goodsCard2 from '@/components/goods/goods_card2.vue';
+	import request from '@/common/api/request.js'
+	export default {
+		data() {
+			return {
+				showType:'列表',//展示类型 列表/大图
+				hotList:[],
+				historyList:[],
+				showView:"view1",
+				searchContent:'',
+				searchResults:[],//搜索结果
+				filterSearchResults:[],//添加筛选条件后的结果
+				searchTime:1,//为1时证明为搜索而不是下拉加载数据
+				isloding:true,
+				totalNum:'',//查询到的总数
+				choiceBar:"test0", //选择哪个排序条件
+				searchObj: {
+					searchContent: '', //商品查询名
+					pageIndex: 1,
+					pageSize: 20,
+					drugsList: [],
+					sortRule:'默认',
+					filterRule:'无',//筛选条件
+				},
+				maySearchList:[],
+				filterRule:{
+					manufacturer:[],
+					goodsName:[], //品牌名
+				},//筛选条件
+				useFilterRule:{
+					manufacturer:[],
+					goodsName:[], //品牌名
+				},//使用的筛选条件
+				useFilter:false,
+				focus:false,
+			}
+		},
+		components:{goodsCard,goodsCard2},
+		watch: {
+			searchContent(newVal, oldVal){
+				if (newVal === '') {
+				    this.showView = 'view1';
+				} else if (newVal.length >= 2 && !/^[0-9a-zA-Z]*$/.test(newVal)) {
+				    this.watchInput();
+				}
+			    
+			}
+		},
+		onShow() {
+			
+		},
+		
+		mounted() {		
+			this.getHotGoods()
+			this.historyList = JSON.parse(uni.getStorageSync('historyList') || '[]');
+		},
+		onLoad: function (option) {
+			//解析传过来的对象
+			if (option && option.searchContent) {
+				this.searchContent = JSON.parse(decodeURIComponent(option.searchContent));
+				this.searchGoods('','')
+				console.log(this.searchContent)	
+			}else{
+				this.focus = true
+			}
+			
+		},
+		created() {
+		},
+		computed:{
+			filteredSearchResultsList() {
+				console.log("筛选执行")
+			  if(this.searchResults==[] || this.searchResults==null) return
+			  if (this.useFilterRule.manufacturer.length == 0 && this.useFilterRule.goodsName.length == 0) {		    
+			    return this.searchResults
+			  } else {
+				  
+			    
+			        return this.searchResults.filter((goods) => {
+			          const manufacturerMatch = this.useFilterRule.manufacturer.some(
+			            (unit) => unit === goods.manufacturer
+			          );
+			          
+			          const goodsNameMatch = this.useFilterRule.goodsName.some(
+			            (name) => name === goods.goodsName
+			          );
+					  
+			          if(this.useFilterRule.manufacturer.length == 0 ) return goodsNameMatch
+					  else if(this.useFilterRule.goodsName.length == 0) return manufacturerMatch
+			          else return manufacturerMatch || goodsNameMatch;
+			        });
+					
+			  }
+			  
+			},
+		},
+		methods: {
+			//筛选中点击筛选条件
+			clickFilterRule(item,index,type) {
+				uni.showToast({
+					title:'正在筛选',
+					icon:'none'
+				})
+				if(type=="生产厂商"){
+					const useIndex = this.useFilterRule.manufacturer.findIndex(
+					  (unit) => unit === item
+					);
+					  if (useIndex === -1) {
+					    // 加入筛选
+					    this.useFilterRule.manufacturer.push(item);
+					  } else {
+					    // 移除筛选
+					    this.useFilterRule.manufacturer.splice(useIndex, 1);
+					  }
+					
+				}else if(type=="品牌名"){
+					const useIndex = this.useFilterRule.goodsName.findIndex(
+					  (unit) => unit === item
+					);
+					  if (useIndex === -1) {
+					    // 加入筛选
+					    this.useFilterRule.goodsName.push(item);
+					  } else {
+					    // 移除筛选
+					    this.useFilterRule.goodsName.splice(useIndex, 1);
+					  }
+					
+				}
+				if(this.useFilterRule.goodsName.length!=0 || this.useFilterRule.manufacturer.length!=0){
+					this.useFilter=true
+				}  else this.useFilter=false
+				
+				// console.log(this.useFilterRule)  
+			},
+			//获取uni-tag样式类型
+			getTagType(item,type) {
+				if(type=="生产厂商"){
+					const isSelected = this.useFilterRule.manufacturer.some(
+					  (unit) => unit === item
+					);
+					return  isSelected ? 'primary' : '';
+					
+				}else if(type=="品牌名"){
+					const isSelected = this.useFilterRule.goodsName.some(
+					  (unit) => unit === item
+					);
+					return  isSelected ? 'primary' : '';
+				}
+		  
+			},
+			//创建筛选条件
+			createfilterRule(searchResults){			
+				const uniqueManufacturer = new Set();
+				const uniqueGoodsName = new Set();
+				      searchResults.forEach((goods) => {
+				        uniqueManufacturer.add(goods.manufacturer);
+						uniqueGoodsName.add(goods.goodsName);
+				      });
+				      this.filterRule.manufacturer = Array.from(uniqueManufacturer);
+				      this.filterRule.goodsName = Array.from(uniqueGoodsName);    
+			},
+			//重置筛选 
+			resetFilterRule(){
+				this.useFilterRule.manufacturer=[]
+				this.useFilterRule.goodsName=[]
+				this.filterSearchResults = this.searchResults
+				this.useFilter = false
+			},
+			toGoodsSellShop(goods){
+				uni.navigateTo({
+					url:"/pages/shops_selling_This_goods/shops_selling_This_goods?goods="+encodeURIComponent(JSON.stringify(goods))
+					//传对象参数给这个页面需要使用这个方法
+				})
+			},
+			selectBar(num,sort){
+				if(num!='test4')this.choiceBar=num
+				if(num=='test3'){
+					if(this.showType=='大图'){this.showType='列表'}
+					else{this.showType='大图'}
+				}else{
+					this.choiceBar=num
+					var sortRule = this.searchObj.sortRule
+				}
+				if(num!='test3'){
+					uni.pageScrollTo({
+						scrollTop: 0, // 将目标元素的选择器传递给 selector 属性
+						duration: 300, // 滚动动画的时长，单位为 ms
+					});
+				}
+				
+				if(num=='test0') this.searchObj.sortRule='默认'
+				if(num=='test1'&&sort=='price'){
+					if(sortRule!='价格升序'||sortRule!='价格降序') this.searchObj.sortRule='价格降序'
+					if(sortRule=='价格升序') this.searchObj.sortRule='价格降序'
+					if(sortRule=='价格降序') this.searchObj.sortRule='价格升序'
+					this.sortSearchResults(this.searchObj.sortRule)
+					return
+				} 
+				if(num=='test2'&&sort=='shopsNum'){
+					if(sortRule!='报价数升序'||sortRule!='报价数降序') this.searchObj.sortRule='报价数降序'
+					if(sortRule=='报价数升序') this.searchObj.sortRule='报价数降序'
+					if(sortRule=='报价数降序') this.searchObj.sortRule='报价数升序'
+					this.sortSearchResults(this.searchObj.sortRule)
+					return
+				} 
+				
+				if(num=='test4') {
+					this.$refs.popup.open('right')
+				}
+				
+				this.sortSearchResults(this.searchObj.sortRule)
+				
+			},
+			sortSearchResults(sortRule) {
+				if(sortRule=='价格降序'){
+					// 使用 Array.prototype.sort() 方法对 searchResults 进行排序
+					console.log(sortRule)
+					this.searchResults.sort((a, b) => b.minPrice - a.minPrice);
+				}
+			    if(sortRule=='价格升序'){
+			    	this.searchResults.sort((a, b) => a.minPrice - b.minPrice);
+			    }
+				if(sortRule=='默认'){
+					this.searchResults.sort((a, b) => b.similarity - a.similarity);
+				}   
+				if(sortRule=='报价数降序'){
+					// 使用 Array.prototype.sort() 方法对 searchResults 进行排序
+					console.log(sortRule)
+					this.searchResults.sort((a, b) => b.shopNum - a.shopNum);
+				}
+				if(sortRule=='报价数升序'){
+					this.searchResults.sort((a, b) => a.shopNum - b.shopNum);
+				} 
+				this.removeDuplicates()
+				
+			},
+			//搜索商品
+			async searchGoods(name,type){
+				this.showView='view3'
+				var that = this
+				let searchContent1 = this.searchContent
+				if(name!=''){//用于检验是否是点击热销或者历史搜索记录
+				    console.log("热门/记录搜索"+name)
+					searchContent1 = name
+					this.searchContent = name
+					this.resetFilterRule()
+				}
+				if(this.searchObj.searchContent!=searchContent1 ||searchContent1==''){
+					this.searchTime = 1
+					this.searchObj.pageIndex=1
+					this.searchObj.drugsList=[]
+					this.searchResults=[]
+					this.resetFilterRule()
+				}else if (type!='loadMore' && this.searchContent!='' ){
+					//搜索内容相同但是搜索类型不是加载更多的话就退出
+					return
+				}
+						
+				this.saveSearchHistory(searchContent1);
+				this.resetFilterRule() //每次查询都重置筛选
+				
+				
+				//保证只有第一次搜索时才有搜索中的提示，后续下拉加载更多数据不显示
+				if (that.searchTime === 1) {					
+					console.log(that.searchTime);
+					that.searchTime = that.searchTime + 1
+					uni.showLoading({
+						title: '搜索中...'
+					})
+				}
+				that.searchObj.searchContent=searchContent1
+				
+				//发起搜索请求
+				const url = '/api/goods/searchGoods';
+				const method = 'POST'; 
+				const data = {
+					searchObj: that.searchObj,
+				};
+				try {
+					const res = await request('yzy_app', url, method, data);
+					console.log(res);		//统一格式：{"data":{}, "flag":99, "result":"成功"}
+					if(res.code == 99){
+						//能搜索到数据
+						if (res.data.data !== null) {
+							this.searchResults = [...this.searchResults, ...res.data.data] //下拉加载更多数据 与旧数据连接		
+							that.totalNum = res.data.totalCount
+							this.searchObj.drugsList = res.data.drugsList
+							this.showView='view3'	
+							
+							this.createfilterRule(this.searchResults)					
+						} else {
+							//不能搜索到数据
+							
+							// this.showView='view1'
+							uni.showToast({
+								title: '没有找到该药品!',
+								icon:'error',
+								duration: 1200
+							})
+						}
+						if(!res.data.drugsList.length==0)this.sortSearchResults('报价数降序')	
+						else
+						this.sortSearchResults(this.searchObj.sortRule)
+												
+					}
+					
+					uni.hideLoading()
+				} catch (error) {
+					console.log(error);
+					uni.hideLoading()
+				}
+										
+			},
+			// 在适当的位置调用这个方法，来清除 this.searchResults 中的重复数据
+			removeDuplicates() {
+			  const uniqueGoods = [];
+			  
+			  for (const item of this.searchResults) {
+			    const exists = uniqueGoods.some(uniqueItem => uniqueItem.goodsId === item.goodsId);
+			    if (!exists) {
+			      uniqueGoods.push(item);
+			    }
+			  }			  
+			  this.searchResults = uniqueGoods;
+			},
+			//到达页面底部 触发加载更多内容
+			onReachBottom() {
+				//如果数据已经全部加载完毕
+				if (this.searchObj.pageIndex * this.searchObj.pageSize >= this.totalNum) {
+					console.log("数据加载完毕")
+					uni.showToast({
+						title:"数据加载完毕",
+						icon:"success"
+					})
+					return 
+				}
+				if (this.isloading) return
+				// 让页码值自增+1
+				this.searchObj.pageIndex++
+				console.log("到达底部")
+				this.searchGoods('','loadMore')
+				
+			},
+			// //存储搜索历史
+			saveSearchHistory(searchContent) {
+				console.log('存储搜索历史')
+				//历史搜索关键词进行去重排序
+				const set = new Set(this.historyList)
+			
+				// 使用正则表达式判断是否全为数字
+				const numericPattern = /^[0-9]+$/;
+				if(numericPattern.test(searchContent)) return
+				if (searchContent.trim().length !== 0) {
+					set.delete(searchContent.trim())
+					set.add(searchContent.trim())
+				}
+				let ar = Array.from(set)
+				if (ar.length > 8) {
+					set.delete(ar[1])
+				}
+				this.historyList = Array.from(set).reverse()
+				// 对搜索历史数据，进行持久化的存储
+				uni.setStorageSync('historyList', JSON.stringify(Array.from(set)))
+			},
+			//搜索推荐商品/热门商品
+			async getHotGoods(){
+								
+				var that = this				
+				//发起搜索请求
+				const url = '/api/goods/searchGoods';
+				const method = 'POST'; 
+				const data = {
+					searchObj: {
+						searchContent: '', //商品查询名
+						pageIndex: 1,
+						pageSize: 20,
+						drugsList: [],
+						sortRule:'默认',
+						filterRule:'无',//筛选条件
+					},
+				};
+				try {
+					const res1 = await request('yzy_app', url, method, data);
+							//统一格式：{"data":{}, "flag":99, "result":"成功"}
+					if(res1.code == 99){
+						//能搜索到数据
+						if (res1.data !== null) {
+							this.hotList = res1.data.data	
+								
+						} else {	
+						}																		
+					}
+					else {
+					}
+				} catch (error) {
+					console.log(error);
+				}
+										
+			},
+			async getMaySearch(){
+				const url = '/api/goods/getMaySearch';
+				const method = 'POST'; 
+				const data = {
+					searchContent: this.searchContent
+				};
+				try {
+					const response = await request('yzy_app', url, method, data);		//统一格式：{"data":{}, "flag":99, "result":"成功"}
+					console.log(response)
+					if(response.code == 99){
+						this.maySearchList = response.data.data
+					}
+					else {
+					}
+				} catch (error) {
+					console.log(error);
+				}
+			},
+			//监听输入框
+			watchInput(){		
+				if(this.searchContent!=''){
+					this.showView = "view2"
+					this.getMaySearch()
+				}else{
+					this.showView = "view1"
+				}
+			},
+			clearSearchContent(){
+				this.searchContent = ''
+				this.searchTime = 1
+				this.searchObj.pageIndex=1
+				this.searchObj.drugsList=[]
+			},
+			clearSearchResult(){
+				this.searchTime = 1
+				this.searchObj.pageIndex=1
+				this.searchObj.drugsList=[]
+				this.searchResults=[]
+			}
+		}
+	}
+</script>
+
+<style lang="scss">
+.bigImg-box{
+	background: white;
+	width: 46%;
+	margin: auto;
+	border-radius: 15px;
+	ackground: white;
+	padding: 1vw;
+	margin-bottom: 10px;
+}	
+.mini-text{
+	font-size: 13px;
+	font-weight: bold;
+	font-family: -webkit-pictograph;
+}	
+.activeBar{
+	border-bottom: 4px #1296DB solid;
+}
+.choice-bar-container{
+	 background: #1296DB;
+	display: flex;
+	overflow : auto;
+	background: white;
+	z-index: 9999;
+}
+.choice-bar-item-box {
+	height: 100%;
+    width: 25vw;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	padding: 5px 0;
+} 	
+.icons{
+	width: 20px;
+	height: 20px;
+	display: flex;
+}	
+.view1{
+	margin: 60px 10px 10px 10px;
+}
+.view2{
+	margin-top: 100px;
+	min-height: 200px;
+	border-radius: 15px;
+	margin: 100px 2vw 2vw 2vw;
+	width: 96vw;
+	display: flex;
+	flex-wrap: wrap;
+}
+ .search-container{
+
+	  width: 100%;
+	  
+	 display: flex;
+	 padding: 3vw;
+	 background: #1296DB;
+ } 
+ .search-input {
+     display: flex;
+     align-items: center;
+     // justify-content: center;
+     border-radius: 24px;
+     width: 80vw;
+	 background: white;
+ }
+ .voice-icon{
+ 	 font-family: "Material Icons";
+ 	 font-size: 5vw;
+ 	 color: #9aa0a6;
+ 	 margin-left: 8px;
+ 	 line-height: 31px;
+ }
+.filter-button-container{
+		display: flex;
+		width: 100%;
+	} 
+.history-box {
+	padding: 0 5px;
+
+	.history-title {
+		display: flex;
+		justify-content: baseline;
+		height: 40px;
+		align-items: center;
+		font-size: 15px;
+		border-bottom: 1px solid #efefef;
+	}
+
+	.history-list {
+		display: flex;
+		flex-wrap: wrap;
+
+		uni-tag {
+			margin-top: 15px;
+			margin-right: 5px;
+			font-size: 2rpx;
+		}
+	}
+	
+}
+page{
+	    background: #f3f3f3;
+}
+</style>

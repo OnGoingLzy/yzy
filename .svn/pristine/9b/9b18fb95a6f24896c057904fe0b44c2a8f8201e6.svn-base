@@ -1,0 +1,334 @@
+<template>
+	<view>
+		<view class="goods-card"> 
+			<goodsCard :goods="goods"></goodsCard>
+			<text style="color: #bfbfbf;font-size: 14px;">{{goods.tssm1}}</text>
+		</view>
+		<view class="choice-bar-container">
+			<view class="choice-bar-item-box" @click="selectBar('test0')">
+				<text ref="text0" @click="selectBar('test0')" :style="{ color: choiceBar === 'test0' ? '#1296DB' : 'black' }" >默认</text>
+			</view>	
+			<view class="choice-bar-item-box"  @click="selectBar('test1')">
+				<text ref="test1" :style="{ color: choiceBar === 'test1' ? '#1296DB' : 'black' }">距离</text>
+			</view>
+			
+			<view class="choice-bar-item-box" @click="selectBar('test2')">
+				<text ref="text2"  :style="{ color: choiceBar === 'test2' ? '#1296DB' : 'black' }">库存</text>
+			</view>
+			
+			<view class="choice-bar-item-box"  @click="selectBar('test3','price')">
+				<view style="display: flex;align-items: center;">
+					<text ref="test1"  :style="{ color: choiceBar === 'test3' ? '#1296DB' : 'black' }">价格</text>
+						<text class="mini-text" :style="{ color: sortRule === '价格降序' ? '#1296DB' : '#777777' }">↑</text>
+						<text class="mini-text" :style="{ color: sortRule === '价格升序' ? '#1296DB' : '#777777' }">↓</text>
+				</view>	
+			</view>
+			<view class="choice-bar-item-box" @click="selectBar('test4')">
+				<text ref="text4"  :style="{ color: !useFilter ? 'black' : '#1296DB' }">筛选</text>
+			</view>
+		</view>
+		
+		<!-- 店铺列表 -->
+		<view v-for="(shop, i) in filteredShopsList" :key="i" @click="toGoodsDetails(goods,shop)"  class="shops-container">
+			<shopCard :shop="shop" :goods="goods"></shopCard>
+		</view>
+			
+		<uni-popup ref="popup" type="right" background-color="#fff" >
+			<view style="width: 70vw;padding: 5px;">
+				<text style="font-weight: bold;">筛选</text>
+				<view style="padding: 5px;">
+					<uni-tag v-for="(item,i) in filterRule.businessUnit" :key="i" :text="item" style="margin: 5px;" @click="clickBusinessUnit(item,i)" :type="getTagType(item)"></uni-tag>
+				</view>
+			</view>
+			<view class="filter-button-container">
+				<button type="primary" @click="resetFilterRule">重置</button>
+			</view>
+		</uni-popup>
+		
+	</view>
+</template>
+
+<script>
+	import goodsCard from '@/components/goods/goods_card.vue';
+	import shopCard from '@/components/shop/shop_card.vue'
+	import request from '@/common/api/request.js'
+	export default {
+		data() {
+			return {
+				goods:{},
+				choiceBar:"test0",
+				sortRule:'默认',
+				filterRule:{
+					businessUnit:[],
+				},//筛选条件
+				useFilterRule:{
+					businessUnit:[]
+				},//使用的筛选条件
+				useFilter:false,
+				filterShopList:[],
+				shopsList:[],
+				latitude:null,
+				longitude:null,
+				firstClickLocation:true
+			}
+		},
+		components:{goodsCard,shopCard},
+		// navigate.vue页面接受参数
+		mounted() {
+			// this.getUserLocation()
+			this.getShops(102,24)
+		},
+		onLoad: function (option) {
+			//解析传过来的对象
+			this.goods = JSON.parse(decodeURIComponent(option.goods));
+			
+		},
+		onHide() {
+			console.log("关闭实时定位")
+			uni.offLocationChange()
+			
+		},
+		computed:{
+			filteredShopsList() {
+			  if (this.useFilterRule.businessUnit.length == 0) {
+			    // No filter, return the original shopsList
+			    return this.shopsList;
+			  } else {
+			    // Apply filter based on businessUnitName
+			    return this.shopsList.filter((shop) => {
+			      return this.useFilterRule.businessUnit.some(
+			        (unit) => unit === shop.businessUnitName
+			      );
+			    });
+			  }
+			},
+		},
+		methods: {
+			resetFilterRule(){
+				this.useFilterRule.businessUnit=[]
+				this.filterShopList = this.shopsList
+			},
+			//获取uni-tag样式类型
+			getTagType(item) {
+			  const isSelected = this.useFilterRule.businessUnit.some(
+			    (unit) => unit === item
+			  );
+		
+			  return  isSelected ? 'primary' : '';
+			},
+			
+			//筛选中点击业务单元筛选条件		
+			clickBusinessUnit(item,index) {
+				const useIndex = this.useFilterRule.businessUnit.findIndex(
+				  (unit) => unit === item
+				);
+			      if (useIndex === -1) {
+			        // 加入筛选
+			        this.useFilterRule.businessUnit.push(item);
+			      } else {
+			        // 移除筛选
+			        this.useFilterRule.businessUnit.splice(useIndex, 1);
+			      }
+				if(this.useFilterRule.businessUnit.length!=0){
+					this.useFilter=true
+				}  else this.useFilter=false
+				  
+			},
+			//创建筛选条件
+			createfilterRule(shopList){			
+				const uniqueBusinessUnits = new Set();
+				      shopList.forEach((shop) => {
+				        uniqueBusinessUnits.add(shop.businessUnitName);
+				      });
+				      this.filterRule.businessUnit = Array.from(uniqueBusinessUnits);
+				    
+			},
+			toGoodsDetails(goods,shop){
+				console.log(goods)
+				uni.navigateTo({
+					url:"/pages/goods_details/goods_details?goods="+encodeURIComponent(JSON.stringify(goods))+"&shop="+encodeURIComponent(JSON.stringify(shop))
+					//传对象参数给这个页面需要使用这个方法
+				})
+			},
+			selectBar(num,sort){
+				
+				console.log(num)
+				var that = this
+				if(num!='test4')this.choiceBar=num
+				
+				var sortRule = this.sortRule
+				if(num=='test1') {
+					uni.showLoading({
+						title: "加载中"
+					})
+					this.sortRule='距离'
+					if(this.firstClickLocation){//若是第一次点击则开启定位	
+						
+						uni.startLocationUpdate({
+						    success: res => {
+						        console.log('startLocationUpdate用户开启使用小程序期间位置权限:',res)
+						        uni.onLocationChange(function (res) {
+									that.latitude=res.latitude
+									that.longitude=res.longitude
+									// 计算每个商店到用户位置的距离，并添加一个 distance 属性
+									
+									that.shopsList.forEach(shop => {
+										shop.distance = that.calculateDistance(shop.latitude, shop.longitude);
+									});
+									that.firstClickLocation = false	
+									that.sortShopsList(that.sortRule)
+									
+						        });
+						    },
+						    fail: err => {
+						        console.log('startLocationUpdate获取当前位置失败', err)
+						    },
+						    
+						})	
+					}else
+					that.sortShopsList(that.sortRule)
+					
+					return
+				} 
+				if(num=='test2') this.sortRule='库存'
+				if(num=='test3'&&sort=='price'){
+					if(sortRule!='价格升序'||sortRule!='价格降序') this.sortRule='价格降序'
+					if(sortRule=='价格升序') this.sortRule='价格降序'
+					if(sortRule=='价格降序') this.sortRule='价格升序'
+					this.sortShopsList(this.sortRule)
+					return
+				} 
+				
+				if(num=='test4') {
+					this.$refs.popup.open('right')
+				}
+				if(num=='test0') this.sortRule='默认'
+				this.sortShopsList(this.sortRule)
+				
+			},
+			sortShopsList(sortRule) {
+				if(sortRule=='价格降序'){
+					// 使用 Array.prototype.sort() 方法对 searchResults 进行排序
+					this.shopsList.sort((a, b) => a.price - b.price);
+				}
+			    if(sortRule=='价格升序'){
+			    	this.shopsList.sort((a, b) => b.price - a.price);
+			    }
+				if(sortRule=='库存' || sortRule=='默认'){
+					// 使用 Array.prototype.sort() 方法对 searchResults 进行排序
+					this.shopsList.sort((a, b) => b.inventory - a.inventory);
+				}
+				if(sortRule=='距离'){				
+					
+					// 使用 Array.prototype.sort() 方法根据距离进行排序
+					this.shopsList.sort((a, b) => a.distance - b.distance);
+					uni.hideLoading()
+				}	
+				
+			},
+			//根据经纬度计算距离
+			calculateDistance(latitude, longitude) {		
+				const earthRadius = 6371; // 地球半径，单位：公里
+				const dLat = this.degreesToRadians(latitude - this.latitude);
+				const dLon = this.degreesToRadians(longitude - this.longitude);
+				const a =
+					Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+					Math.cos(this.degreesToRadians(this.latitude)) * Math.cos(this.degreesToRadians(latitude)) *
+					Math.sin(dLon / 2) * Math.sin(dLon / 2);
+				const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+				const distance = earthRadius * c;
+				return distance.toFixed(2);
+			},
+			degreesToRadians(degrees) {
+			  return degrees * (Math.PI / 180);
+			},
+			//获取售卖该药的门店
+			 async getShops(jingdu,weidu){
+				this.latitude=weidu
+				this.longitude=jingdu
+				console.log(this.latitude)
+				uni.showLoading({
+					title:"搜索中.."
+				})
+				var that = this
+				console.log("查询门店")
+				const url = '/api/shop/searchShops';
+				const method = 'POST'; 
+				const data = {
+					goods_json: this.goods,
+					latitude: weidu,
+					longitude: jingdu,
+				};
+				try {
+					const res = await request('yzy_app', url, method, data);
+					console.log(res);		//统一格式：{"data":{}, "flag":99, "result":"成功"}
+					if(res.code == 99){
+						this.shopsList = res.data.data						
+						this.createfilterRule(res.data.data)
+						this.sortShopsList(this.sortRule)						
+						uni.hideLoading()
+					}
+					else {
+						uni.hideLoading()
+					}
+				} catch (error) {
+					uni.hideLoading()
+				}
+				
+			},
+			getUserLocation(){
+				console.log("获取位置")
+				let that = this
+				uni.getLocation({
+					type: 'gcj02', //返回可以用于uni.openLocation的经纬度
+					success: function(res) {
+						console.log(res)	
+						that.getShops(res.longitude,res.latitude)						
+					},
+					fail(res) {
+						
+					}
+				})
+			}
+		}
+	}
+</script>
+
+<style lang="scss">
+.filter-button-container{
+	position: absolute;
+	display: flex;
+	top: 80vh;
+	width: 100%;
+	
+}	
+.shops-container{
+	margin: 5px 10px;
+	// border-bottom: 1px solid #e2e2e2; /* 设置下边框线为1像素宽的实线 */
+}
+.goods-card{
+	padding: 10px;
+}
+.mini-text{
+	font-size: 13px;
+	font-weight: bold;
+	font-family: -webkit-pictograph;
+}	
+.choice-bar-container{
+	width: 100%;
+	background: #1296DB;
+	display: flex;
+	overflow : auto;
+	background: white;
+}
+.choice-bar-item-box {
+	height: 100%;
+	width: 100px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	padding: 5px 0;
+} 
+
+</style>

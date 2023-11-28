@@ -1,0 +1,292 @@
+<template>
+  <view class="container">
+	  
+	  <div class="person-card-container">
+		<view  class="person-card" v-for="(user, i) in goodsUser" :key="i" :class="{'selected': user.isSelected}">
+			<view style="display: flex;align-items: center;">
+				<div style="justify-content: flex-start;display: flex;">
+				<image src="../../static/icon/patient.svg" style="width: 7vw;height: 7vw;" ></image>
+				</div>
+				<div style="width: 70%;justify-content: flex-start;display: flex;align-items: center;">					
+					<text v-text="user.goodsUserName" style="font-size: 5vw;font-weight: normal;"></text>
+					<uni-tag :circle="true" text="已认证" size="small" type="success" style="margin-left: 10px;"></uni-tag>
+					<uni-tag :circle="true" :text="user.relationship" size="small" style="margin-left: 10px;"></uni-tag>
+				</div>	
+				<div style="width: 15%;justify-content: flex-end;display: flex;">
+					<image src="../../static/icon/error.svg" style="width: 4vw;height: 4vw;" v-if="user.lxdh==null" @click="deleteUser(user)"></image>	
+				</div>
+			</view>
+			<view style="display: flex;align-items: center;padding-left: 5px;padding-right: 5px;">
+				<text style="color: #c2c2c2;font-size: 14px;">{{user.sex}}</text>
+				<text style="color: #c2c2c2;font-size: 14px;margin-left: 25px;" v-text="calculateAge(user.birthday)+'岁'"></text>
+			</view>			
+					
+		</view>  
+	  </div>
+	    
+	
+	<uni-popup ref="popup" type="center" :mask-click="isEnableClick" :animation="false">
+		<addGoodsUser  @fatherMethod="fatherMethods"></addGoodsUser>
+	</uni-popup>
+	<view style="display: flex;align-items: center;position: absolute;bottom: 0;width: 100%;padding-bottom: 20px;background: white;">
+		<button @click="showAddFrame()" class="button">添加用药人</button>	
+	</view>	
+	
+  </view>
+  
+  
+</template>
+
+<script>
+import request from '@/common/api/request.js'
+import addGoodsUser from '@/components/user/add_goods_user.vue'
+export default {
+  name: 'user-id-card-verify',
+  components:{addGoodsUser},
+  data() {
+    return {
+		index:0,
+		frontImage: null,
+		backImage: null,
+		popup:true,
+		popupidverify:true,
+		msg:'',
+		authObj: {
+			goodsUserName:'',
+			idCard:'',
+			phone:'',
+			relationship:'', 
+			sex:'',
+			openid:uni.getStorageSync("openid"),
+		},
+		goodsUser:[],
+		isEnableClick: true,
+		choiceObj: null,
+    }
+  },
+  mounted() {
+	this.getGoodsUser()
+  },
+  onUnload() {
+	  uni.navigateBack({
+		  delta:1,
+		  success: function(){
+			  uni.$emit('pageClosed', 'Success');
+		  }
+	  });
+  },
+  methods: {
+		fatherMethods(e) {
+		  console.log('父组件方法',e);  // 父组件方法
+		  this.addOver(e)
+		},
+		//添加用药人结束后执行的方法
+		addOver(res){
+			this.getGoodsUser()
+			this.$refs.popup.close()
+		},
+		async getGoodsUser(){
+			const url = '/api/user/getGoodsUser';
+			const method = 'POST'; 
+			const data = {
+				openid: uni.getStorageSync("openid"),
+				phone: uni.getStorageSync("phone"),
+			};
+			try {
+				const response = await request('yzy_app', url, method, data);
+				console.log(response);		//统一格式：{"data":{}, "flag":99, "result":"成功"}
+				if(response.code == 99){
+					this.goodsUser = response.data.data
+				}
+				else {
+
+				}
+			} catch (error) {
+				console.log(error);
+			}		
+		},
+		async deleteUser(user){
+			if(this.isEnableClick==false) return
+			//删除用药人信息
+			var that = this
+			uni.showModal({
+				title: '删除',
+				content: '是否删除该用药人',
+				success: function (res) {
+					if (res.confirm) {
+						uni.showLoading({
+							title: '删除中...'
+						})
+						that.postDeleteRequest(user)
+					} else if (res.cancel) {
+						return
+					}
+				}
+			});
+		},
+	async postDeleteRequest(user){		
+			const url = '/api/user/delGoodsUser';
+			const method = 'POST'; 
+			const data = {
+				openid: uni.getStorageSync("openid"),
+				id: user.id
+			};
+			try {
+				const response = await request('yzy_app', url, method, data);
+				console.log(response);		//统一格式：{"data":{}, "flag":99, "result":"成功"}
+				if(response.code == 99){
+					uni.showToast({
+						title:"成功",
+					})
+					this.getGoodsUser()
+				}
+				else {
+					uni.showToast({
+						title:response.data.sm,
+					})
+				}
+				uni.hideLoading()
+			} catch (error) {
+				console.log(error);
+			}	
+				uni.hideLoading()
+		},
+		calculateAge(birthday) {
+			  const birthdayDate = new Date(
+				birthday.substr(0, 4),
+				birthday.substr(4, 2) - 1,
+				birthday.substr(6, 2)
+			  );
+
+			  const currentDate = new Date();
+			  const ageInMillis = currentDate - birthdayDate;
+
+			  // 计算年龄
+			  const ageInYears = Math.floor(ageInMillis / (365 * 24 * 60 * 60 * 1000));
+			  return ageInYears;
+		},
+		hideCode(){
+		  this.popup=true;//点击其他区域后，隐藏
+		},
+		hideCode2(){
+		  if(this.isEnableClick==false){
+			  console.log("正在验证,不给退出")
+			  return;
+		  }else{
+			this.popupidverify=true;//点击其他区域后，隐藏  
+		  }
+		  
+		},
+		showAddFrame(){
+		 this.$refs.popup.open('center')
+			
+		}
+    }
+}
+</script>
+
+<style lang="scss">
+	.button{
+		margin-top: 10px;
+		bottom: 0;
+		width: 200px;
+		height: 40px;
+		border-radius: 30px;
+		background-color: #409EFF;
+		color: #fff;
+		font-size: 18px;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+	}
+	.selected{
+		border: 2px solid #409EFF;
+	}
+	.uni-common-mt{
+		margin-top: 10px;
+	}
+	.id-button{
+		margin-top: 10px;
+		bottom:0;
+		max-width: 50vw;
+		border-radius: 30px;
+		background-color: #409EFF;
+		color: #fff;
+		font-size: 18px;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+	}
+	.card {
+	    background-color: #ffffff;
+	    border-radius: 10px;
+	    padding: 20rpx;
+		margin: 4vw;
+	  }
+	
+	  .card-title {
+		display: flex;
+	    font-size: 30rpx;
+	    font-weight: bold;
+	    color: #333;
+	  }
+	.person-card{
+		background-color: #f1f1f1;
+		border: #dfdfdf 1px solid;
+		border-radius: 10px;
+		box-shadow: 10px 5px 5px #cccccc;
+		padding: 1vw;
+		margin: 2vw;
+		width: 94vw;
+		height: 10vh;
+		align-items: center;
+		// display: flex;
+	}
+	.person-card-container{
+		flex-wrap: wrap;
+		width: 100%;
+		max-height: 70vh;
+		display: flex;
+	}
+	.example-body {
+		padding: 10px;
+		padding-top: 0;
+	}
+
+	.text {
+		font-size: 14px;
+		color: #333;
+	}
+	
+	.promotionCode_content{
+	  
+		max-width: 500rpx;
+		border: 10px solid white;
+		background-color: white;
+		z-index: 1002;
+		border-radius: 10px;
+	  
+	}
+	.popup_overlay {
+				position: fixed;
+				top: 0%;
+				left: 0%;
+				width: 100%;
+				height: 100%;
+				background-color: black;
+				z-index: 1001;
+				-moz-opacity: 0.8;
+				opacity: .80;
+				filter: alpha(opacity=88);
+			}
+	.title{
+		font-weight: bold;
+		margin-top: 10px;
+		margin-bottom: 10px;
+		font-size: 24px;
+	}	
+		page{
+			background-color: #ebebeb;
+		}
+</style>
+

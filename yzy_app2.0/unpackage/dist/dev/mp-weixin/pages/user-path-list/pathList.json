@@ -1,0 +1,8 @@
+{
+  "navigationBarBackgroundColor": "#1296DB",
+  "navigationBarTitleText": "收货地址",
+  "navigationBarTextStyle": "white",
+  "usingComponents": {
+    "add-path": "/pages/user-add-path/addPath"
+  }
+}

@@ -1,0 +1,69 @@
+<template>
+	<view class="parent-box">
+		<image src="../../static/icon/pay_success.svg" mode="" class="success-icon"></image>
+		<view class="pay-success">支付成功</view>
+		<view class="pay-success-tips">您已经完成支付</view>
+		<view class="button-list">
+			<button type="primary" class="go-to" @click="goToOrder">我的订单</button>
+			<button type="default" class="go-to" @click="goToBuy">继续买药</button>
+		</view>
+	</view>
+</template>
+
+<script>
+	export default {
+		data() {
+			return {
+
+			}
+		},
+		methods: {
+			goToBuy(){
+				uni.reLaunch({
+					url: '/pages/index/index',
+				})
+			},
+			goToOrder(){
+				uni.reLaunch({
+					url: '/pages/user/user',
+				})
+			},
+		}
+	}
+</script>
+
+<style>
+	.parent-box{
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+	}
+	
+	.success-icon {
+		width: 200rpx;
+		height: 200rpx;
+		padding-top: 180rpx;
+	}
+	
+	.pay-success{
+		font-size: 48rpx;
+		font-weight: bold;
+		padding-top: 40rpx;
+	}
+	
+	.pay-success-tips{
+		font-size: 32rpx;
+		color: #636263;
+	}
+	
+	.button-list{
+		padding-top: 60rpx;
+		width: 90%;
+	}
+	
+	.go-to{
+		margin-bottom: 30rpx;
+	}
+	
+</style>

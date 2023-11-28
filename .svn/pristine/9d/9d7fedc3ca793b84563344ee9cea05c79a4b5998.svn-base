@@ -1,0 +1,395 @@
+<template>
+	<view>
+		<view class="header-container">
+			<view class="">
+			  <image src="/static/icon/avatar.png" class="avatar"></image>
+			</view>
+			<view class="" style="padding-left: 5px;color: azure;font-weight: bold;">微信用户</view>
+		</view>
+		
+		<view class="grid-container" style="margin-top: -70px;">
+			<view style="display: flex;text-align: right;padding-bottom: 10px;" @click="toMyOrder('test0')">
+				<view style="width: 50%;text-align: left;">
+					<text class="title">我的订单</text>
+				</view>
+				<view style="width: 50%;"  >
+					<text style="font-size: 14px;">全部订单</text>
+					<uni-icons type="arrowright" size="15"></uni-icons>
+				</view>
+			</view>
+			
+			<uni-grid :column="4" :highlight="true" class="my-grid" :showBorder="false" highlight=false>
+				<uni-grid-item>
+					<view class="grid-item-box" @click="toMyOrder('test1')">
+						<uni-badge :text="orderNum.noPay" absolute="rightTop" >
+							<image src="../../static/icon/dfk2.png" class="icon-class"></image>
+						</uni-badge>
+						<text class="text">待付款</text>
+						
+					</view>
+				</uni-grid-item>
+				<uni-grid-item>
+					<view class="grid-item-box"  @click="toMyOrder('test2')">
+						<uni-badge :text="orderNum.isPay" absolute="rightTop" >
+							<image src="../../static/icon/dck.png" class="icon-class"></image>
+						</uni-badge>
+						
+						<text class="text">待发货</text>
+					</view>
+			
+				</uni-grid-item>
+				<uni-grid-item>
+					<view class="grid-item-box"  @click="toMyOrder('test3')">
+						<uni-badge :text="orderNum.waitRecive" absolute="rightTop" >
+						<image src="../../static/icon/dsh.png" class="icon-class"></image>
+						</uni-badge>
+						<text class="text">待收货</text>
+					</view>
+					
+				</uni-grid-item>
+				<uni-grid-item>
+					<view class="grid-item-box" >
+						<uni-badge :text="orderNum.refund" absolute="rightTop" >
+						<image src="../../static/icon/tk.png" class="icon-class"  @click="toMyOrder('test4')"></image>
+						</uni-badge>
+						<text class="text">退货/款</text>
+					</view>
+					
+				</uni-grid-item>
+			</uni-grid>
+		</view>
+		
+		<view class="grid-container">
+			<view style="display: flex;text-align: right;">
+				<view style="width: 50%;text-align: left;">
+					<text class="title">我的服务</text>
+				</view>	
+			</view>
+			
+			<uni-grid :column="4" :highlight="true" class="my-grid" :showBorder="false">
+				<!-- <uni-grid-item>
+					<view class="grid-item-box" @click="showMsg">
+						<image src="../../static/icon/wz.png" class="icon-class"></image>
+						<text class="text">我的问诊</text>
+					</view>
+				</uni-grid-item> -->
+				<uni-grid-item>
+					<view class="grid-item-box" @click="toMyRecipe">
+						<uni-badge :text="'new'" absolute="rightTop" type="success">
+						<image src="../../static/icon/cf.png" class="icon-class"></image>
+						</uni-badge>
+						<text class="text">我的处方</text> 
+					</view>
+			
+				</uni-grid-item>
+				<uni-grid-item>
+					<view class="grid-item-box">
+						<!-- <uni-icons type="wallet" size="30"></uni-icons> -->
+						<text class="text"></text>
+					</view>
+					
+				</uni-grid-item>
+				<uni-grid-item>
+					<view class="grid-item-box">
+						<!-- <uni-icons type="wallet" size="30"></uni-icons> -->
+						<text class="text"></text>
+					</view>
+					
+				</uni-grid-item>
+			</uni-grid>
+		</view>
+		
+		<view class="grid-container">
+			<view style="display: flex;text-align: right;">
+				<view style="width: 50%;text-align: left;">
+					<text class="title">个人中心</text>
+				</view>	
+			</view>
+			
+			<uni-grid :column="4" :highlight="true" class="my-grid" :showBorder="false">
+				<uni-grid-item>
+					<view class="grid-item-box" @click="toAddress()">
+						<view style="display: flex;align-items: center;justify-content: center;" class="icon-class">
+							<image src="../../static/icon/location.svg" style="width: 8vw;height: 8vw;"></image>
+						</view>
+						
+						<text class="text">收货地址</text>
+					</view>
+				</uni-grid-item>
+				<uni-grid-item>
+					<view class="grid-item-box" @click="toDrugUsers()">
+						
+						<image src="../../static/icon/patient2.svg" class="icon-class"></image>
+						<text class="text">用药人</text> 
+					</view>
+			
+				</uni-grid-item>
+				<uni-grid-item>
+					<view class="grid-item-box" @click="shareCode">
+						<image src="../../static/icon/个人码.svg" class="icon-class" ></image>
+						<text class="text">分享码</text>
+					</view>
+					
+				</uni-grid-item>
+				<uni-grid-item>
+					<view class="grid-item-box" @click="connect">
+						<image src="../../static/icon/客服.svg" class="icon-class" >			
+							
+						</image>
+						<button open-type="contact" plain="true" class="bt_contact" style="border: none;"></button>
+						<text class="text">联系客服</text>
+					</view>
+					
+				</uni-grid-item>
+			</uni-grid>
+		</view>
+		
+
+		
+		<!-- 人工客服区域显示和隐藏结束 -->
+		<uni-popup ref="popup1" type="bottom">
+			<view style="padding: 15px;border-radius: 10px;background: white;">
+				<button  open-type="contact" type="primary" plain="false" class="bt_contact">联系客服</button>
+			</view>	
+		</uni-popup>
+		
+		
+		<!-- 推广码区域显示和隐藏开始 -->
+		<uni-popup ref="popup2" type="center">
+			<view style="padding: 15px;border-radius: 10px;background: white;">
+			      <image style="height: 70vw;width: 70vw;" :src="promotionCodeUrl" class="promotionCodeImage" :show-menu-by-longpress="true"></image>
+			</view>
+		</uni-popup>
+		
+		
+		<view class="popup_overlay" :hidden="promotionCodeHidden" @click="hideCode()"></view>
+		
+	</view>
+</template>
+
+<script>
+	import request from '@/common/api/request.js'
+	export default {
+		data() {
+			return {
+				isVerify:false,	
+				nickname:uni.getStorageSync("nickname"),
+				promotionCodeUrl:'data:image/jpeg;base64,',//二维码图片二进制流，base64编码
+				orderNum:{//各订单数量
+					noPay:0,
+					isPay:0,
+					waitRecive:0 ,//待收获
+					refund:0,//退货,已退款
+				}
+			}
+		},
+		mounted(){
+			// this.checkIsVerify()			
+			
+		},
+		onShow() {
+			this.getOrderNumByStatus("待付款")
+			this.getOrderNumByStatus("待发货")
+			this.getOrderNumByStatus("待收货")
+			this.getOrderNumByStatus("退款")
+		},
+		onLoad() {
+			if (!uni.getStorageSync("phone")){
+			  return this.toAuthorizePhone()
+			}
+			  
+		},
+		methods: {
+			toMyRecipe(){
+				uni.navigateTo({
+					url:'/pages/user_recipe/user_recipe'
+				})
+			},
+			showMsg(){
+				uni.showToast({
+					title:'功能正在开发中...',
+					icon:'none'
+				})
+			},
+			toAddress(){
+				if(!uni.getStorageSync("phone")){
+					this.toAuthorizePhone()
+				}else
+				uni.navigateTo({
+					url:'/pages/user-path-list/pathList'
+				})
+			},
+			//获取各状态订单数量
+			async getOrderNumByStatus(status){
+				const url = '/api/trade/getOrderNumByStatus';
+				const method = 'POST';
+				const data = {
+					openid: uni.getStorageSync("openid"),
+					status: status,
+				};
+				try {
+					const response = await request('yzy_app', url, method, data);
+					
+					if(response.code == 99 && response.data.flag==99){
+						if(status=='待付款'){
+							this.orderNum.noPay = response.data.num.toString();
+						}else if (status=='待发货'){
+							this.orderNum.isPay = response.data.num.toString();
+						}else if (status=='待收货'){
+							this.orderNum.waitRecive = response.data.num.toString();
+						}else{
+							this.orderNum.refund = response.data.num.toString();
+						}
+						
+					}
+					else{
+						return 0;
+					}
+				} catch (error) {
+					console.log(error);
+				}
+			},
+			//点击我的订单下的按钮
+			toMyOrder(num){
+				uni.navigateTo({
+					url: '/pages/user_order/user_order?num='+num
+				})
+			},
+			//点击用药人执行函数
+			toDrugUsers(){
+				if(!uni.getStorageSync("phone")){
+					console.log("没有绑定手机")
+					this.toAuthorizePhone()
+				}else{
+					uni.navigateTo({
+						url: '/pages/goods_user/goods_user'
+					}) 
+					console.log("添加用药人")
+				}
+				
+			},
+			toAuthorizePhone() {
+				uni.navigateTo({
+					url: '/pages/login/login'
+					
+				})
+			},
+			//个人分享码
+			async shareCode() {
+			  if(!uni.getStorageSync("phone"))
+			    {
+			      //提示先授权手机号，才能生成推广码
+			      return this.toAuthorizePhone()        
+			    }
+			    
+			   var that = this
+			   
+			   if(this.promotionCodeUrl=='data:image/jpeg;base64,'){
+	
+					const url = '/api/user/getShareCode';
+					const method = 'POST'; 
+					const data = {
+					  "phone": uni.getStorageSync("phone")
+					  // 其他参数...
+					};
+					
+					try {
+					  const res = await request('yzy_app', url, method, data);
+					  // 处理响应数据...
+					  console.log(res)
+					  if (res.code != -99) {
+					    that.promotionCodeUrl = that.promotionCodeUrl+res.data;   
+					  	that.$refs.popup2.open('center')
+					  }
+					  else{
+					  	uni.showToast({
+					  		title: "获取失败"
+					  	})
+					  }
+					} catch (error) {
+					  console.error(error);
+					}
+					
+			   }else{
+				   this.$refs.popup2.open('center')
+			   }
+			   
+			},
+			//联系客服
+			async connect() {
+			  //this.$refs.popup1.open('center')
+			  // 获取到按钮的引用
+			       
+			},
+			
+			
+	
+		}
+	}
+</script>
+
+<style lang="scss">
+	.bt_contact{
+		position: absolute;
+		width: 100%;
+		height: 100%;
+		border: 0;
+		
+	}
+	.icon-class{
+		height: 10vw;
+		width: 10vw;
+	}
+	.grid-container{
+		padding: 1vw;
+		border-radius: 15px;
+		border: 1px #fff solid;
+		background: #fff;
+		margin: 2vw;
+		width: 94vw;
+		
+	}
+	.my-grid{
+		max-height: 50px;
+		.grid-item-box {
+			flex: 1;
+			// position: relative;
+			/* #ifndef APP-NVUE */
+			display: flex;
+			/* #endif */
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			padding: 5px 0;
+		} 
+	}
+	
+	.title{
+		font-size: 16px;
+		font-weight: bold;
+	}	
+	.text{
+		font-size: 13px;
+		color: #232323;
+	}
+	.header-container{
+		display: flex;
+		padding: 2vw;
+		height: 140px;
+		background: #29EAC4;  /* fallback for old browsers */
+		background: -webkit-linear-gradient(to bottom, #1296DB, #29EAC4);  /* Chrome 10-25, Safari 5.1-6 */
+		background: linear-gradient(to bottom, #1296DB, #29EAC4); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+		border-radius: 0 0 15px 15px;
+
+	}
+	.avatar{
+		width: 48px;
+		height: 48px;
+		border-radius: 50%;
+		border: 2px solid #FFF;
+		box-shadow: 0 1px 5px black;
+	}
+	page{
+		background-color: #f4f4f4; 
+	}
+</style>

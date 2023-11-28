@@ -1,0 +1,172 @@
+<template>
+	<view class="content">
+		<goodsCard :goods="goods" :shop="shop"></goodsCard>
+		<view style="padding: 15px 5px;">
+			<view style="width: 100%;max-height: 33px;margin-top: 15px;">
+				<text style="font-weight: bold;">选择单品</text>
+			</view>
+			
+			</br>
+			<view class="box">
+				<text style="color: #1296DB;" decode="true" v-text="goods.specification+'&ensp;'"></text>
+			</view>
+		</view>
+		
+		<view style="display: flex;padding: 15px 5px;">
+			<view style="width: 40%;">
+				<text style="font-weight: bold;" decode="true">库存数量：</text>
+				<text style="color: #c7c7c7;font-size: 13px" v-text="shop.inventory==null ? 0:shop.inventory"></text>
+			</view>
+			
+			<view style="    display: flex;justify-content: flex-end;width: 60%;padding-right: 20rpx;">
+				<uni-number-box :min="1" :max="shop.inventory<shop.limitNum ? shop.inventory:shop.limitNum" :value="num"  @change="numChange()"/>
+			</view>
+			
+		</view>
+		<view>
+			<button class="button" @click="submit()">
+				<text v-if="orderType=='加入购物车'">加入购物车</text>
+				<text v-if="orderType=='立即购买'">立即购买</text>
+				<text v-if="orderType=='问诊开方'">问诊开方</text>
+			</button>
+		</view>
+		<!-- 流程导航 -->
+		<view class="title-navi" v-if="orderType=='问诊开方'">
+			<text class="f-active-color">点击问诊开方</text>
+			<image class="title-navi-next" src="../../static/icon/next_step_filled.svg"></image>
+			<text>问诊信息</text>
+			<image class="title-navi-next" src="../../static/icon/next_step.svg"></image>
+			<text>医生开方</text>
+			<image class="title-navi-next" src="../../static/icon/next_step.svg"></image>
+			<text>下单购药</text>
+		</view>
+		<view style="height: 5vh;width: 100%;"></view>
+	</view>
+</template>
+
+<script>
+	import goodsCard from '@/components/goods/goods_card.vue';
+	import request from '@/common/api/request.js'
+	export default {
+		components:{goodsCard},
+		name:"orderPopup",
+		props: {
+			shop: {
+				type: Object,
+				default: {}
+			},
+			goods:{
+				type: Object,
+				default: {}
+			},
+			orderType:{
+			},
+		},
+		data() {
+			return {
+				num:1,
+				localOrderType:'',
+			};
+		},
+		 watch: {
+		    orderType: {
+		      immediate: true, 
+		      deep: true, 
+		      handler(newVal) {
+		        this.localOrderType = newVal;
+		      }
+			}  
+		},
+		methods:{
+			// 发现bug @change事件会把button的字情况
+			numChange(value){
+				this.num = value
+			},
+			submit(){
+				//传给父组件
+				var data={ 
+					num:this.num,
+					type:this.localOrderType,
+				};
+				if(this.shop.price==null||this.shop.price==0){
+					uni.showToast({
+						icon:'error',
+						title:'暂无定价'
+					})
+					return	
+				}
+				if(this.orderType=='问诊开方'){
+					if(this.shop.inventory==null || this.shop.inventory==0) {
+						uni.showToast({
+							icon:'error',
+							title:'库存不足'
+						})
+						return	
+					}
+					this.toPrescription()
+				}else{
+					if(this.shop.inventory==null || this.shop.inventory==0) {
+						uni.showToast({
+							icon:'error',
+							title:'库存不足'
+						})
+						return	
+					}
+					this.$emit("closePopupBuyGoods",data)
+				}
+				
+			},
+			// 前往问诊开方页
+			toPrescription(){
+				console.log(this.goods.goodsId)
+				uni.navigateTo({
+					url: `/pages/consultation/consultation?goodsId=${this.goods.goodsId}&shopId=${this.shop.shopId}&goodsAmount=${this.num}&stockLimit=${this.shop.limitNum}&stock=${this.shop.inventory}`,
+				})
+			},
+		}
+	}
+</script>
+
+<style>
+	
+uni-number-box {
+	scale: 110%;
+}
+.content{
+	max-height: 60vh;
+	width: 100%;
+	background: white
+}	
+.box{
+	margin: 15px 5vw 0 5vw;
+    border-radius: 25px;
+    max-width: 90vw;
+    border: 1px solid #1296DB;
+    padding: 5px;
+}
+.button{
+	margin: 15px;
+	padding: 10px;
+	background: #1296DB;
+	height: 40px;
+	border-radius: 30px;
+	text-align: center;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: white;
+	font-weight: bold;
+}
+.title-navi {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 10rpx 26rpx 20rpx 26rpx;
+	background-color: white;
+}
+
+.title-navi-next {
+	width: 20rpx;
+	height: 20rpx;
+}
+</style>

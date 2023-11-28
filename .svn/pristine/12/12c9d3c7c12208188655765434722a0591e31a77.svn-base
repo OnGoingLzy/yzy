@@ -1,0 +1,279 @@
+<template>
+	<view class="background">
+		<view class="arch">
+		<!-- <image class="bg-img" src='../../static/img/background1.jpg'></image> --> 
+			<view class='path-item' 
+				v-for='(item,index) in list' :key='index'
+			>
+				<view class='item-main' >
+					<view class='item-name'>{{item.name}}</view>
+					<view class='item-name'>{{item.tel}}</view>
+				</view>
+				<view class='item-main'style="align-items: flex-start; margin-left: 60rpx;">
+					<view class='active' v-if='item.isDefault==1' style="    min-width: 20px;text-align: center;margin: auto;">默认</view>
+					<view class='item-name'>{{item.city}} {{item.details}}</view>
+				</view>		
+				<view class='item-main' style="justify-content: flex-end;"> 
+					<view class='active-icon' style="margin-right: 20px;" @tap='updateAddress(item)'>编辑</view>
+					<view class='active-delete' @tap='deleteAddress(index)'>删除</view>
+				
+				</view>
+				
+			</view>
+		<addPath ref="addPath" v-show="false"></addPath>
+		<view class="add-path">
+			<!-- <view class="add-path-btn-wx" @tap='getWechatAddress'>获取微信地址</view> -->
+			<view class="add-path-btn" @tap="goAddPath"> + 新增地址</view>
+		</view>
+		</view>
+	</view>
+</template>
+
+<script>
+	import addPath from '../user-add-path/addPath.vue'
+	import request from '@/common/api/request.js'
+export default {
+  data() {
+    return {
+      list: [],
+	  openid: uni.getStorageSync("openid"),
+	  
+    };
+  },
+    components: {
+      addPath,
+    },
+	onShow(e){
+		//初始化拿到收货地址数据
+		this.getAddressList();
+		// uni.$on('addressUpdated', () => {  // 监听事件
+		//         this.getAddressList();
+		//     });
+	},
+	onLoad() {
+		
+	},
+  methods: {
+	//"data":{"data":[{"name":"用户","isDefault":1,"phone":"19895328225","address":"云南省昆明市呈贡区云南白药街"}]  
+	async getAddressList(){
+		const url = '/api/user/getAddressList';
+		const method = 'POST'; 
+		const data = {
+			//需要修改：传入用户的openid openid:uni.getStorageSync("openid")
+		  openid: uni.getStorageSync("openid")
+		};
+		try {
+			const response = await request('yzy_app', url, method, data);
+			console.log(response);		//统一格式：{"data":{}, "flag":99, "result":"成功"}
+			if(response.code == 99){
+				// 更新 this.list 的值
+				this.list = response.data.data
+			}
+			else {
+			}
+		} catch (error) {
+			console.log(error);
+		}
+	},
+	
+    //修改
+	async updateAddress(item){
+		let pathObj = JSON.stringify({
+		  item
+		});
+		uni.navigateTo({
+		  url: "../user-add-path/addPath?data=" + pathObj + "",
+		});		
+	    },
+	//删除
+	async deleteAddress(index){
+		var that = this;
+		uni.showModal({
+			title: '删除',
+			content: '是否删除该地址',
+			success: function (res) {
+				if (res.confirm) {
+					 that.postDeleteAddress(index);
+					uni.showLoading({
+						title:"删除中"
+					})
+					
+				} else if (res.cancel) {
+					return
+				}
+			}
+		});
+	},
+	async postDeleteAddress(index){
+		
+		let pathObj =  this.list[index];
+	
+		console.log(this.pathObj);	
+		const url = '/api/user/deleteAddress';
+		const method = 'POST'; 
+		const data = {
+		  //需要修改：传入用户的openid openid:uni.getStorageSync("openid")
+		  userId:pathObj.userId,
+		  id:pathObj.id,
+		 
+		};
+		try {
+			const response = await request('yzy_app', url, method, data);
+			console.log(response);		//统一格式：{"data":{}, "flag":99, "result":"成功"}
+			if(response.code == 99){
+				console.log(this.list);
+				uni.hideLoading()
+				uni.showToast({
+					title: '删除成功',
+					icon: 'success',
+					duration: 2000
+				});
+				//更新界面
+				this.getAddressList();
+			}
+			else {
+			}
+		} catch (error) {
+			console.log(error);
+		}
+	},	
+    //新增
+    goAddPath() {
+      uni.navigateTo({
+        url: "../user-add-path/addPath",
+      });
+    },
+
+	getWechatAddress(){
+		var that = this
+		uni.showModal({
+			title:"提示",
+			content:"是否使用微信地址？",
+			success: (res) => {
+				
+				if(res.confirm){
+					uni.chooseAddress({
+						success: (params) => {
+							
+							let pathObj={
+								"name": params.userName,
+								"tel": params.telNumber,
+								"city":params.provinceName+'-'+params.cityName+'-'+params.countyName,
+								"details": params.detailInfo,
+								"isDefault": 0,
+								"openid": that.openid,
+							};
+							this.$refs.addPath.pathObj = pathObj;
+							
+							this.$refs.addPath.addAddress();
+							this.getAddressList();
+							
+						}
+					})
+				}else{
+					uni.navigateTo({
+						url:"../user-add-path/addPath"
+					})
+				}
+			}
+		})
+		},
+
+  },
+};
+</script>
+
+<style>
+.add-path{
+	width: 100%;
+	display: flex;
+	justify-content: center;
+}	
+.add-path-btn{
+	background: linear-gradient(to right, #1296DB, #1296DB);
+	color: #fff;
+	border-radius: 50rpx;
+	padding: 10rpx 190rpx;
+    position: fixed;
+    bottom: 60px;
+   
+}
+.add-path-btn-wx{
+	background: linear-gradient(to right, #1296DB, #1296DB);
+	color: #fff;
+	border-radius: 50rpx;
+	padding: 10rpx 180rpx;
+    position: fixed;
+    bottom: 20px;
+   
+}
+.path-list{
+	padding-left: 20rpx;
+	border-radius: 30rpx;	
+}
+.path-item{
+	padding: 30rpx 20rpx;
+	margin: 20rpx;
+	border-bottom: 2rpx solid #1296DB;
+	border-radius: 10px;
+	background-color: #ffffff;
+	color: #fff;
+}
+.item-main{
+	display: flex;
+	align-items: center;
+	
+}
+
+.active{
+	
+	padding: 0 3rpx;
+	border: 1px solid #1296DB;
+	color: #1296DB;
+	border-radius: 20rpx;
+	font-size: 16rpx;	
+
+}
+.active-icon{
+	padding: 0 20rpx;
+	border: 1px solid #1296DB;
+	color: #1296DB;
+	border-radius: 20rpx;
+	font-size: 20rpx;	
+}
+.active-delete{
+	padding: 0 20rpx;
+	border: 1px solid #767c7f;
+	color: #767c7f;
+	border-radius: 20rpx;
+	font-size: 20rpx;	
+}
+.item-name{
+	padding-right: 10rpx;
+	font-size: 28rpx;
+	color: #000;
+}
+.bg-img{
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    z-index: -1;
+}
+.background {
+    position: relative;
+    height: 100vh;  /* 视窗的高度 */
+    background-color: #1296DB;
+}
+.arch {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;  /* 元素的宽度为父元素的宽度 */
+    height: 90vh;  /* 元素的高度为视窗高度的一半 */
+    background-color: white;
+    border-top-left-radius: 50% 10%;  /* 左上角的圆角 */
+    border-top-right-radius: 50% 10%;  /* 右上角的圆角 */
+}
+</style>

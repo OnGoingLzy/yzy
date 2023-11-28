@@ -1,0 +1,112 @@
+<template>
+	<view style="line-height: normal;">
+		<view class="shop-container">
+			<view class="left-container">
+				<view style="" @click="toGoodsDetails(goods,shop)">
+					<text v-text="shop.simplifyShopName"></text>
+				</view>
+				<view style="padding-left: 5px;">
+					<text v-text="shop.shopAddress" style="font-size: 13px;color: #8b8b8b;"></text>
+					<text style="color: #c01a04;" v-text="'\n距您'+shop.distance+'km'" v-if="shop.distance"></text>
+				</view>
+				<view style="" @click="callPhone(shop.shopPhone)">
+					<text v-text="'联系电话: '" style="font-size: 13px;color: #8b8b8b;"></text>
+					<text v-text="shop.shopPhone" style="font-size: 13px;color: #0055ff;"></text>
+				</view>
+
+			</view>
+			<view class="right-container" @click="toGoodsDetails(goods,shop)">
+				<view style="text-align: right;">
+					<text v-text="'￥'+shop.price" class="goods-price"></text>
+				</view>
+				<view style="justify-content: flex-end;display: flex;">
+					<view><text style="color: #8b8b8b;">库存: </text></view>
+					<view style="width: 40px;"><text v-text="shop.inventory==null ? 0:shop.inventory" style="color: #c01a04;"></text></view>
+					
+				</view>
+			</view>
+		</view>
+	</view>
+</template>
+
+<script>
+	export default {
+		name:"shopCard",
+		props: {
+			shop: {
+				type: Object,
+				default: {}
+			},
+			goods:{
+				type: Object,
+				default: null
+			},
+			enableClick:{
+				
+			}
+		},
+		data() {
+			return {
+				
+			};
+		},
+		mounted() {
+			
+		},
+		methods:{
+			toGoodsDetails(goods,shop){
+				console.log(goods)
+				uni.navigateTo({
+					url:"/pages/goods_details/goods_details?goods="+encodeURIComponent(JSON.stringify(goods))+"&shop="+encodeURIComponent(JSON.stringify(shop))
+					//传对象参数给这个页面需要使用这个方法
+				})
+			},
+			callPhone(phone){
+				// 使用正则表达式匹配电话号码
+				const phoneNumberMatches = phone.match(/\d+/g);
+				
+				// 提取匹配到的数字部分作为电话号码
+				if (phoneNumberMatches && phoneNumberMatches.length > 0) {
+				  const phoneNumber = phoneNumberMatches[0];
+				  console.log("提取到的电话号码：" + phoneNumber);
+				  uni.makePhoneCall({
+				  	phoneNumber: phoneNumber //仅为示例
+				  });
+				} else {
+				  console.log("未找到电话号码");
+				}
+				
+			}
+		},
+	}
+</script>
+
+<style lang="scss">
+.shop-container{
+	line-height: 19px;
+	padding: 2vw;
+	border-radius: 15px;
+	display: flex;
+	// min-height: 80px;
+	box-shadow: 2px -1px 10px 0.5px rgba(0, 0, 0, 0.2);
+}
+
+.left-container {
+	width: 62vw;
+	display: flex;
+	flex: 1;
+	flex-direction: column;	   
+}
+.right-container{
+	text-align: right;
+	// width: 35vw;
+}
+.goods-price {
+	color: #c01a04;
+	font-size: 15px;
+	font-family: fantasy;
+}
+*{
+	line-height: normal;
+}
+</style>

@@ -1,0 +1,1 @@
+<view><view class="goods-list"><view a:for="{{searchResults}}" a:for-item="goods" a:for-index="i" a:key="i"><history-list vue-id="{{'afc65440-1-'+i}}" goods="{{goods}}" onVueInit="__l"></history-list></view></view><view class="isShows">{{''+show+''}}</view></view>

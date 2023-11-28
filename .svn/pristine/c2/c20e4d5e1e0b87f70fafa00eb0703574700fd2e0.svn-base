@@ -1,0 +1,577 @@
+<template>
+	<view>
+		<view style="background: white;width: 94vw;padding: 3vw 3vw 0 3vw;">
+			<view>
+				<text style="font-weight: bold;">{{hospital.hospitalName}}</text>
+			</view>
+			<view>
+				<text style="color: gray;">{{hospital.location}}</text>
+			</view>
+		</view>
+		
+		<view class="select-person">
+			<view class="select-person-firstline">
+				<view class="select-person-title">
+					<text class="star-sign">*</text>
+					<text>选择用药人</text>
+				</view>
+				<view class="more-person" @click="checkPerson()">
+					<view class="f-color">新增/编辑</view>
+					<image class="more-person-icon" src="../../static/icon/more_person.svg"></image>
+				</view>
+			</view>
+			<view class="uni-flex uni-row person-row">
+				<view class="flex-item person-item" v-for="(person, index) in persons" :key="index"
+					:class="index === selectPersonIndex ? 'persong-item-selected' : 'persong-item'"
+					@click="selectPersonIndex = index; selectPersonId = person.id;selectPerson = person">
+					<view class="person-name">{{person.goodsUserName}}</view>
+					<text class="person-info">{{person.sex}}</text>
+					<text class="person-info person-age" v-text="calculateAge(person.birthday)+'岁'"></text>
+					<text class="person-info" style="display: none;">{{person.id}}</text>
+				</view>
+			</view>
+			
+		</view>
+		
+		<view class="select-time">
+			<view class="select-time-firstline">
+				<view class="select-time-title">
+					<text class="star-sign">*</text>
+					<text>选择科室及预约时间</text>
+				</view>
+			</view>
+			
+			<view class="department-container">
+				<view class="column" style="margin-top: 7px;">
+					<view class="time-label">就诊科室</view>
+						<view
+						  v-for="slot in department"
+						  :key="slot"
+						  class="slot2"
+						  @click="selectDepartment(slot)"
+						  :class="{ selected: selectedDepartment === slot }"
+						>
+						  {{ slot }}
+						</view>
+					
+				</view>		
+			</view>
+			
+			<view class="container" style="margin-top: 7px;">
+			    <!-- 上午栏 -->
+			    <view class="column">
+					<view class="time-label">上午</view>
+					<view class="time-slots">
+						<view
+						  v-for="slot in morningSlots"
+						  :key="slot"
+						  class="slot"
+						  @click="selectTime(slot)"
+						  :class="{ selected: selectedTime === slot }"
+						>
+						  {{ slot }}
+						</view>
+					</view>
+			    </view>
+			
+			    <!-- 下午栏 -->
+			    <view class="column">
+					<view class="time-label">下午</view>
+					<view class="time-slots">
+						<view
+						  v-for="slot in afternoonSlots"
+						  :key="slot"
+						  class="slot"
+						  @click="selectTime(slot)"
+						  :class="{ selected: selectedTime === slot }"
+						>
+						  {{ slot }}
+						</view>
+					</view>
+			    </view>
+			</view> 
+			
+		</view>
+		
+		<view class="select-time">
+			<view class="select-time-firstline">
+				<view class="select-time-title">
+					<text class="star-sign">*</text>
+					<text>就诊人信息</text>
+				</view>
+			</view>
+			<view style="margin-top: 12px;">
+				<uni-forms label-width="100" label-position="left" label-align="left" >
+					<uni-forms-item label="就诊人电话" >
+						<uni-easyinput type="number" placeholder="请输入就诊人的电话(11位)" v-model="patientPhone" @input="onInput" trim="true"/>
+					</uni-forms-item>
+				</uni-forms>
+			</view>
+			
+		</view>		
+		
+		
+		<view style="position: absolute;bottom: 10px;background: white;width: 100%;padding: 12px;display: flex;justify-content: center;align-items: center;">
+			<view class="appointment-btn" @click="clickSubmit" :disabled="disabled" >
+				<text :style="disabled?'color: gray':'color: white'">{{ buttonLabel }}</text>
+			</view>
+		</view>
+		
+	</view>
+</template>
+
+<script>
+	import request from '@/common/api/request.js'
+	export default {
+		data() {
+			return {
+				hospital:{
+					hospitalName:"",
+					location:"",
+				},
+				disabled:false,
+				persons: [],
+				appointmentDate:null,
+				selectPersonIndex: null,
+				selectPersonId: null,
+				selectPerson: null,
+				morningSlots: ["9:00", "9:30", "10:00", "10:30", "11:00", "11:30"],
+				afternoonSlots: ["14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30"],
+				selectedTime: null,
+				department: ["内科","外科"],
+				selectedDepartment: null,
+				countdown: 30,            // 倒计时时间（秒）
+				timer: null               ,// 计时器
+				buttonLabel: "确认",   // 按钮文本
+				patientPhone:"",
+				validInput:false,
+				schedule:null,
+			}
+		},
+		onLoad: function (option) {
+			//解析传过来的对象
+			this.getGoodsUser()
+			this.hospital = JSON.parse(decodeURIComponent(option.hospital));
+			this.appointmentDate = JSON.parse(decodeURIComponent(option.date));
+			uni.$on('pageClosed', (data) => {
+				this.getGoodsUser();
+				this.selectPersonIndex = null;
+			});
+			this.getHospitalSchedule(this.appointmentDate)
+		},
+		beforeDestroy() {
+		    // 在页面销毁前清除计时器
+		    clearInterval(this.timer);
+		  },
+		methods: {
+			generateTimeSlots(timeRange) {
+			    // 解析时间范围字符串，例如 "9:00~12:00"
+			    const [start, end] = timeRange.split('~');
+			    const [startHour, startMinute] = start.split(':').map(Number);
+			    const [endHour, endMinute] = end.split(':').map(Number);
+			
+			    const timeSlots = [];
+			    for (let hour = startHour; hour <= endHour; hour++) {
+			        for (let minute = 0; minute < 60; minute += 30) {
+			            // 格式化小时和分钟，确保为两位数
+			            const formattedHour = hour.toString().padStart(2, '0');
+			            const formattedMinute = minute.toString().padStart(2, '0');
+			            timeSlots.push(`${formattedHour}:${formattedMinute}`);
+			        }
+			    }
+			
+			    return timeSlots;
+			},
+			//初始化时间选择标签
+			initTimeSlot(){
+				var moring = this.schedule.moringWorkHours
+				var afternoon = this.schedule.afternoonWorkHours
+				
+				this.morningSlots = this.generateTimeSlots(moring);
+				this.afternoonSlots = this.generateTimeSlots(afternoon);
+				
+			},
+			//获取医院工作时间表
+			async getHospitalSchedule(appointmentDate){
+				
+				var date = appointmentDate
+				console.log(date)
+				var data1 = {
+					type:"医院",
+					hospitalId:this.hospital.id,
+					date:date.split("/")[0]
+					
+				}
+				
+				const url = '/api/appointment/getHospitalSchedule';
+				const method = 'POST'; 
+				const data = data1
+				try {
+					const response = await request('yzy_app', url, method, data);
+							//统一格式：{"data":{}, "flag":99, "result":"成功"}
+					
+					if(response.data.flag==99){
+						
+						this.schedule = response.data.data
+						this.initTimeSlot()
+						console.log(this.schedule);
+					}else{
+						uni.showToast({
+							title:"失败!"+response.data.sm,
+							icon:"none",
+							mask:true						
+						})
+					}
+					
+					
+					
+				} catch (error) {
+					console.log(error);
+					uni.hideLoading()
+					
+				}
+			},
+			onInput() {
+
+			  // 使用正则表达式检查是否是11位纯数字
+			   const inputText = this.patientPhone;
+			   const numericValue = inputText.replace(/[^\d]/g, ""); // 过滤非数字字符
+				this.validInput=false
+			   // 检查是否为11位纯数字
+			   if (/^\d{11}$/.test(numericValue)) {
+				 console.log("hefa")
+			     this.patientPhone = numericValue;
+				 this.validInput = true
+			   } else {
+			     // 如果超过11位，截取前11位
+			     this.patientPhone = numericValue.slice(0, 11);
+			   }
+			  
+			},
+			async submit(){
+				uni.showLoading({
+					title: ' 预约中...',
+					mask:true
+				})
+				var data1 = {
+					openid: uni.getStorageSync("openid"),
+					appointmentUserPhone: uni.getStorageSync("phone"),
+					patientName: this.selectPerson.goodsUserName,
+					patientPhone: this.selectPerson.phone,
+					appointmentTime: this.appointmentDate + this.selectedTime,
+					appointmentHospitalId: this.hospital.id,
+					department: this.selectedDepartment,
+					
+				}
+				
+				const url = '/api/appointment/generateAppointment';
+				const method = 'POST'; 
+				const data = data1
+				try {
+					const response = await request('yzy_app', url, method, data);
+					console.log(response);		//统一格式：{"data":{}, "flag":99, "result":"成功"}
+					
+					if(response.data.flag==99){
+						uni.showToast({
+							title:"预约成功!请按时前往预约点",
+							icon:"none",
+							mask:true,
+							duration:1300,						
+						})
+						setTimeout(function() {
+						    uni.redirectTo({
+						    	url:"/subPackage_appointment/user_queryAppointment/user_queryAppointment"
+						    })
+						}, 1300);
+						
+					}else{
+						uni.showToast({
+							title:"预约失败!"+response.data.sm,
+							icon:"none",
+							mask:true						
+						})
+					}
+					
+					
+					
+				} catch (error) {
+					console.log(error);
+					uni.hideLoading()
+					
+				}
+				
+				console.log(data)
+			},
+			clickSubmit() {
+			  if(!this.selectedDepartment || !this.selectedTime || !this.selectPersonId){
+				  uni.showToast({
+				    title: "请正确输入/选择必填项",
+				    icon: "none",
+				    duration: 2000
+				  });
+				  return
+			  }		
+			
+			  if(!this.validInput){
+				  uni.showToast({
+				    title: "请正确输入电话号码",
+				    icon: "none",
+				    duration: 2000
+				  });
+				  return
+			  }
+				
+			  if (!this.disabled) {
+			    // 按钮可以点击
+			    this.startCountdown();
+				this.submit()
+			    // 此处添加触发预约的逻辑
+			  } else {
+			    uni.showToast({
+			      title: "您的预约太频繁",
+			      icon: "none",
+			      duration: 2000
+			    });
+			  }
+			    
+			},
+			startCountdown() {
+			  this.disabled = true;
+			  this.buttonLabel = `${this.countdown} s`;
+			  this.timer = setInterval(() => {
+			    if (this.countdown > 0) {
+			      this.countdown--;
+			      this.buttonLabel = `${this.countdown} s`;
+			    } else {
+			      this.stopCountdown();
+			    }
+			  }, 1000);
+			},
+			stopCountdown() {
+			  clearInterval(this.timer);
+			  this.disabled = false;
+			  this.buttonLabel = "确认";
+			  this.countdown = 30;
+			},
+			selectDepartment(slot){
+				this.selectedDepartment = slot;
+			},
+			selectTime(slot) {
+			  this.selectedTime = slot;
+			  // 这里可以将选中的时间保存到 time 属性中
+			},
+			//新增、编辑用药人
+			checkPerson() {
+				console.log("toaddgoodsuser")
+				uni.navigateTo({
+					url: '/pages/goods_user/goods_user?openAddUser=true'
+				});
+			},
+			//获取用药人
+			async getGoodsUser() {
+				const url = '/api/user/getGoodsUser';
+				const method = 'POST';
+				const data = {
+					openid: uni.getStorageSync("openid"),
+					phone: uni.getStorageSync("phone")
+				};
+				try {
+					const response = await request('yzy_app', url, method, data);
+					console.log(response); //统一格式：{"data":{}, "flag":99, "result":"成功"}
+					if (response.code == 99) {
+						this.persons = response.data.data;
+						if(this.persons!=null||this.persons.length!=0){
+							//对this.persons中的对象进行排序，默认把“本人”放在最前面，如果有多个本人，则把最小id的本人放在最前
+							this.persons.sort((a, b) => {
+								if (a.relationship === '本人' && b.relationship !== '本人') {
+									return -1;
+								} else if (a.relationship !== '本人' && b.relationship === '本人') {
+									return 1;
+								} else if (a.relationship === '本人' && b.relationship === '本人') {
+									return a.id - b.id;
+								} else {
+									return 0;
+								}
+							});
+							// 查找是否存在 relationship 为 "本人" 的对象
+							const index = this.persons.findIndex(person => person.relationship === "本人");
+							if (index !== -1) {
+								// 如果找到了 "本人"，则设置索引和 ID
+								this.selectPersonIndex = index;
+								this.selectPersonId = this.persons[index].id;
+								this.selectPerson = this.persons[index]
+							} else if (this.persons.length > 0) {
+								// 如果未找到 "本人"，但 persons 数组不为空，则默认选择第一个
+								// this.selectPersonIndex = 0;
+								// this.selectPersonId = this.persons[0].id;
+							}
+						}
+					} else {
+						uni.$showMsg(response.msg, 3000);
+						this.hasNextSmarthosId = false; 
+					}
+				} catch (error) {
+					uni.$showMsg(error, 3000);
+					this.hasNextSmarthosId = false;
+				}
+			},
+			calculateAge(birthday) {
+				const birthdayDate = new Date(
+					birthday.substr(0, 4),
+					birthday.substr(4, 2) - 1,
+					birthday.substr(6, 2)
+				);
+			
+				const currentDate = new Date();
+				const ageInMillis = currentDate - birthdayDate;
+			
+				// 计算年龄
+				const ageInYears = Math.floor(ageInMillis / (365 * 24 * 60 * 60 * 1000));
+				return ageInYears;
+			},
+		}
+	}
+</script>
+
+<style lang="scss"> 
+.appointment-btn{
+	
+	padding: 5px;border-radius: 50px;width: 40vw;background: #1296DB;text-align: center;color: white;
+}
+.department-container {
+  display: flex;
+  align-items: center;
+}
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.column {
+	display: flex;
+  width: 100%;
+  text-align: center;
+}
+
+.time-label {
+  font-size: 32rpx;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  min-width: 80rpx;
+}
+
+.time-slots {
+  display: flex;
+  flex-wrap: wrap;
+ 
+  align-items: center;
+  justify-content: flex-start;
+}
+.slot2 {
+    margin: 10rpx;
+    padding: 2rpx;
+    border: 1px solid #ccc;
+    border-radius: 10rpx;
+    font-size: 14px;
+    text-align: center;
+    height: 20px;
+    line-height: 20px;
+    width: 50px;
+	
+
+}
+.slot {
+	width: 40px;
+  margin: 10rpx;
+  padding: 10rpx;
+  border: 1px solid #ccc;
+  border-radius: 10rpx;
+  font-size: 28rpx;
+  text-align: center;
+  cursor: pointer;
+  justify-content: flex-start;
+}
+.slot2.selected,
+.slot.selected {
+  background-color: #1296DB; /* 设置选中时的背景颜色 */
+  color: #fff; /* 设置选中时的文字颜色 */
+}
+	.more-person {
+		display: flex;
+		align-items: center;
+		margin-left: auto;
+	}
+	.select-time-title,
+	.select-person-title,
+	.disease-list-title {
+		display: flex;
+		font-size: 36rpx;
+		align-items: center;
+	}
+	.select-time-firstline,
+	.select-person-firstline {
+		display: flex;
+		align-items: center;
+	}
+	.select-time,
+	.select-person,
+	.disease-list {
+		background-color: #FFFFFF;
+		padding: 24rpx 24rpx;
+	}
+	
+	.more-person-icon {
+		padding: 0 10rpx;
+		width: 16px;
+		height: 16px;
+	}
+	
+	.star-sign {
+		color: red;
+		padding-right: 10rpx;
+	}
+	
+	.count-box {
+		margin-left: auto;
+	}
+	
+	.person-item {
+		background-color: #F9F9F9;
+		padding: 12rpx 60rpx 12rpx 24rpx;
+		margin: 24rpx 12rpx 12rpx 8rpx;
+		border-radius: 12rpx;
+		border: #FFFFFF solid 4rpx;
+		color: gray;
+	}
+	
+	.person-name {
+		font-weight: bold;
+		font-size: 30rpx;
+	}
+	
+	.person-row {
+		flex-wrap: wrap;
+	}
+	
+	.persong-item-selected {
+		background-color: #1296DB;
+		padding: 12rpx 60rpx 12rpx 24rpx;
+		margin: 24rpx 12rpx 12rpx 8rpx;
+		border-radius: 12rpx;
+		border: #1296DB solid 4rpx;
+		color: white;
+	}
+	.persong-item-selected {
+		background-color: #1296DB;
+		padding: 12rpx 60rpx 12rpx 24rpx;
+		margin: 24rpx 12rpx 12rpx 8rpx;
+		border-radius: 12rpx;
+		border: #1296DB solid 4rpx;
+		color: white;
+	}
+page{
+	// background: #F2F3F5;
+}
+</style>

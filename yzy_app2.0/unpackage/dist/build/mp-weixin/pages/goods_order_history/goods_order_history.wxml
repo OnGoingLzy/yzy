@@ -1,0 +1,1 @@
+<view><view class="goods-list"><block wx:for="{{searchResults}}" wx:for-item="goods" wx:for-index="i" wx:key="i"><view><history-list vue-id="{{'afb253ec-1-'+i}}" goods="{{goods}}" bind:__l="__l"></history-list></view></block></view><view class="isShows">{{''+show+''}}</view></view>

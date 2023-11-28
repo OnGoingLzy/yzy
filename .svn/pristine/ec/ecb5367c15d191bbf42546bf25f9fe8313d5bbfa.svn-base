@@ -1,0 +1,49 @@
+<template>
+	<view style="">
+		<view style="width: 94vw;padding: 3vw;background: white;border-radius: 15px;text-align: center;">
+			<view>
+				<text style="font-size: 18px;font-weight: bold;">路- 一路艰辛 一路相伴</text>
+			</view>
+		  <view>
+			  <text>十年来
+			   我们努力将腹膜透析液
+			   送到更多肾衰竭患者家中
+			   未来，我们会继续坚持
+			   </text>
+		  </view>
+		  <video
+		     controls
+		     id="myvideo"
+		     :src="videoUrl"
+			 autoplay="true"
+		  ></video>
+		</view>
+		<view style="padding: 2vw;">
+			<image class="swiper-2" src="http://images.yndzyf.com/getimage.ashx?mlszh=21182372&sy=" mode="aspectFit" @click="toOtherMiniProgram(i)"></image>
+		</view>
+		
+	</view>
+</template>
+
+<script>
+	export default {
+		data() {
+			return {
+				videoUrl:'https://ugcws.video.gtimg.com/B_JxNyiJmktHRgresXhfyMemZHiB9jzAngLTeq0i7NX-lNXwzgrLud5EhnUFs-ktvh/svp_50001/szg_1891_50001_0bf2fqabwaaabuapdgfuq5pvclgddmwaag2a.f632.mp4?sdtfrom=v1104&guid=25e9aca65c4411fdd18d38747e8dd036&vkey=A9C535B14FDAE68F7295AD3AF4766CF6616BC01EB87951605891705A6C49D7B78E15CBE7B2C38CA0FE937AF6B190975931A9E035179D6564004491FFEAE898D3AD7C304FDA42DD6208543B3F8B107A00B96CD4680FCD3493A5ACAA97BEEEFAAA42A6EE226573A0CCA0BE96AC40CF77A3929375E1C980EA5BDA14AB6D6FE0312120AA528593882D568F7802FA37544A815304187D053B29F27178BF50E4631A0726701DBBF5D546385B52DA7C80962AB9',
+				
+			}
+		},
+		methods: {
+			
+		}
+	}
+</script>
+
+<style>
+.swiper-2{
+	width: 96vw;
+	height: 43vw;
+	border-radius: 15px;
+	text-align: center;
+}
+</style>

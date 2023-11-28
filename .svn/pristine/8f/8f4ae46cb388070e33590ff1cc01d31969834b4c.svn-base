@@ -1,0 +1,229 @@
+<template>
+	<view>
+		<!-- 顶部七天日期 -->
+		<view class="date-container">
+			<view
+				v-for="(day, index) in sevenDays"
+				:key="index"
+				class="date-item"
+				@click="selectDay(index)"
+				:class="{ 'selected': selectedIndex === index }"
+			>		
+				<text class="day">{{ day.day }}</text>
+				<text class="date">{{ day.date }}</text>
+			  </view>
+		</view>
+		
+		<view v-for="(item,i) in filterDoctor" :key="i" class="doctor-card" @click="openChooseSchedule(item)">
+			<view style="    align-items: center;display: flex;justify-content: center;">
+				<image src="/static/icon/avatar.png" class="avatar"></image>
+			</view>
+			<view style="margin-left: 10px;">
+				<view>
+					<text>{{item.name}}</text>
+				</view>
+				<view>
+					<text style="font-size: 11px;color: gray;">{{item.position}}</text>
+				</view><view>
+					<text style="font-size: 12px;color: gray;">{{'擅长：'+item.note}}</text>
+				</view>
+			</view>
+			
+		</view>
+		
+		<uni-popup ref="popup" type="right" background-color="#fff">
+			<view>
+				<view>
+					{{selectedDate+' '+ clickDoctor.name + ' ' + clickDoctor.position}}
+				</view>
+				<view style="text-align: center;width: 100%;padding: 5px;">
+					<view v-for="(item,i) in schedule" :key="i" class="time-slot">
+						{{item}}
+					</view>
+				</view>
+				
+			</view>
+		</uni-popup>
+		
+	</view>
+</template>
+
+<script>
+	import request from '@/common/api/request.js'
+	export default {
+		data() {
+			return {
+				doctor:[],
+				hospital:null,
+				departmentSubClass:{},
+				sevenDays: [],
+				selectedIndex: 0,
+				selectedDate: null,
+				filterDoctor:[],
+				clickDoctor:null, //当前点击的医生
+				schedule:null,//弹出层的时间表
+			}
+		},
+		onLoad: function (option) {
+			//解析传过来的对象
+		
+			this.hospital = JSON.parse(decodeURIComponent(option.hospital));
+			this.departmentSubClass = JSON.parse(decodeURIComponent(option.departmentSubClass));
+			this.getDoctor("","week")
+			this.generateSevenDays()
+			this.selectDay(0)
+		},
+		methods: {
+			//设置弹出层时间表
+			setSchedule(){
+				
+				if (!this.clickDoctor || !this.clickDoctor.schedule) {
+				    return; // 处理错误或无数据的情况
+				  }
+				
+				  const selectedDate = new Date(this.selectedDate);
+				  const selectedDateStr = selectedDate.toISOString().split('T')[0];
+				
+				  // 筛选符合条件的时间段
+				  const filteredSlots = this.clickDoctor.schedule.filter((slot) => {
+				    const startWorkTime = new Date(slot.startWorkTime);
+				    const endWorkTime = new Date(slot.endWorkTime);
+				
+				    return selectedDate >= startWorkTime && selectedDate <= endWorkTime;
+				  });
+				
+				  // 提取并拼接时间段
+				  const appointmentTimeSlots = filteredSlots.map((slot) => slot.appointmentTimeSlot);
+				  this.schedule = appointmentTimeSlots
+				  // appointmentTimeSlots 现在包含了所选日期的时间段
+				  console.log(appointmentTimeSlots);
+			},
+			//弹出选择时间表界面
+			openChooseSchedule(doctor){
+			  // 通过组件定义的ref调用uni-popup方法 ,如果传入参数 ，type 属性将失效 ，仅支持 ['top','left','bottom','right','center']
+			  this.clickDoctor = doctor
+			  this.setSchedule()
+			  this.$refs.popup.open('right')
+			},
+			//根据日期筛选医生
+			filterDoctorsByDate() {
+				var doctorArray = this.doctor
+				var targetDate = this.selectedDate
+			  this.filterDoctor = doctorArray.filter((doctor) => {
+			    // 使用 some 方法检查医生的时间表是否包含目标日期
+			    return doctor.schedule.some((schedule) => {
+			      const startDate = new Date(schedule.startWorkTime);
+			      const endDate = new Date(schedule.endWorkTime);
+			      const targetDateObj = new Date(targetDate);
+			
+			      return targetDateObj >= startDate && targetDateObj <= endDate;
+			    });
+			  });
+			
+			},
+			// 生成七天日期和星期几
+			generateSevenDays() {
+			  const days = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+			  const today = new Date();
+			
+			  for (let i = 0; i < 7; i++) {
+			    const date = new Date(today);
+			    date.setDate(today.getDate() + i);
+			    const dayOfWeek = days[date.getDay()];
+			    const formattedDate = `${date.getMonth() + 1}-${date.getDate()}`;
+			
+			    if (i === 0) {
+			      // 如果是当天，将 dayOfWeek 设置为 "今天"
+			      this.sevenDays.push({ date: formattedDate, day: '今天' });
+			    } else {
+			      this.sevenDays.push({ date: formattedDate, day: dayOfWeek });
+			    }
+			  }
+			},
+			selectDay(index) {
+			  const today = new Date();
+			  const currentYear = today.getFullYear();
+			  this.selectedIndex = index;
+			  this.selectedDate = currentYear+'-'+this.sevenDays[index].date;
+			  this.filterDoctorsByDate()
+			},
+			async getDoctor(date,type){
+				const url = '/api/appointment/getDoctor';
+				const method = 'POST'; 
+				const data = {
+					departmentSubClassId: this.departmentSubClass.id,
+					hospitalId:this.hospital.id,
+					type:type,
+					date:date
+				};
+				try {
+					const response = await request('yzy_app', url, method, data);
+						//统一格式：{"data":{}, "flag":99, "result":"成功"}
+						console.log(response)
+					if(response.code == 99 && response.data.data){
+						if(type=='week'){
+							this.doctor = response.data.data
+							this.filterDoctorsByDate()
+						}else{
+							
+						}
+						
+					}
+					else {
+					}
+				} catch (error) {
+					console.log(error);
+				}
+			}
+		}
+	}
+</script>
+
+<style>
+.time-slot{
+	color: #1296DB;
+	text-align: center;
+	margin-top: 5px;
+	border-radius: 5px;
+	width: 25vw;
+	height: 25px;
+	border: #1296DB 2px solid;
+}	
+.date-container {
+  background: #1296DB;
+  display: flex;
+  justify-content: space-between;
+  padding: 10px;
+}
+
+.date-item {
+  text-align: center;
+  line-height: 19px;
+  border: 2px solid transparent; /* 初始状态无边框 */
+  border-radius: 10px; /* 圆角效果 */
+}
+
+.date {
+  font-size: 15px;
+  color: #fff;
+}
+.date-item.selected {
+  border-color: #fff; /* 点击后显示黑色边框 */
+}
+.day {
+  font-size: 14px;
+  color: #fff;
+}	
+.doctor-card{
+	display: flex;
+	padding: 5px;
+	border-bottom: #f2f3f4 1px solid;
+}
+.avatar{
+	width: 36px;
+	height: 36px;
+	border-radius: 50%;
+	border: 2px solid #FFF;
+	box-shadow: 0 1px 5px black;
+}
+</style>

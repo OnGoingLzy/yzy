@@ -1,0 +1,244 @@
+<template>
+	<view class="goods-item notTheLastOne">
+		<!-- 左侧的盒子 -->
+		<view class="goods-item-left">
+			
+			<view class="tpyj" style="position: relative;;">
+				<image
+					v-if="goods.goodsType!='处方药' "
+					:src="(imgurl+goods.goodsImg[0].tplszh)=='http://images.yndzyf.com/getimage.ashx?mlszh=undefined'?defaultPic:(imgurl+goods.goodsImg[0].tplszh) || defaultPic"
+					class="goods-pic"></image>
+					<!-- filter模糊图片 -->
+				<image
+					v-if="goods.goodsType=='处方药'"
+					style="filter: blur(2px);"
+					:src="(imgurl+goods.goodsImg[0].tplszh)=='http://images.yndzyf.com/getimage.ashx?mlszh=undefined'?defaultPic:(imgurl+goods.goodsImg[0].tplszh) || defaultPic"
+					class="goods-pic"></image>
+				<view v-if="goods.goodsType=='处方药'" style="    position: absolute;
+														top: 50%;
+														text-align: center;
+														transform: translate(-50%, -50%);
+														left: 50%;">
+					<text style="font-size: 9px;">处方药,开方后可查看详细信息</text>
+				</view>		
+			</view>
+			
+		</view>
+		<!-- 右侧的盒子 -->
+		<view class="goods-item-right">
+			<!-- 商品的名字 -->		
+			  <view class="goods-box">
+				  <view class="goods-bq-box" style="    width: 30%; " v-if="!otherType">
+				  	  <view class="goods-bq"  v-if="goods.goodsType=='处方药' "><text style="color: #ec7063;">处方药</text></view>
+
+					  <view class="goods-bq2"  v-if="goods.goodsType=='非处方药' " style="color: #68d568;">OTC</view>  
+				  </view>
+				  
+				  <view class="goods-bq-box" style="display: inline-block;;padding-left: 5px;    text-overflow: ellipsis;overflow: hidden;white-space: nowrap;">
+					  <text class="goods-box-name" style="font-size: 13px;font-family: monospace;">{{goods.genericName}}</text>
+				  </view>
+					
+					<!-- <view class="has-stock-tag" v-if="goods.isReserve === '0'">
+						<text>有库存</text>
+					</view>
+					<view class="is-reserve-tag" v-if="goods.isReserve === '1'">
+						<text>可预订</text>
+					</view> -->
+			  </view>
+				<view class="goods-desc">规格：{{goods.specification + '/' +goods.sellUnit}}</view>
+				<!-- <view class="goods-desc">厂商：{{goods.manufacturer}}</view> -->
+				<view class="goods-info-box">
+					<view class="goods-price" v-if="goods.minPrice==0 || goods.minPrice=='0.0000' ">
+						暂无定价
+					</view>
+					<view class="goods-price" v-else>￥{{goods.minPrice}}起</view>
+					<view>
+						<text style="color: #00aa00;font-weight: bold;">{{goods.shopNum}}</text>
+						<text>家药房在售</text>
+					</view>	  
+				</view>
+			
+			  
+		</view>
+	</view>
+</template>
+
+<script>
+	export default {
+		props: {
+			goods: {
+				// type: Object,
+				default: {}
+			},
+		},
+		data() {
+			return {
+				// 默认的图片
+				defaultPic: 'https://img3.doubanio.com/f/movie/8dd0c794499fe925ae2ae89ee30cd225750457b4/pics/movie/celebrity-default-medium.png',
+				imgurl: "http://images.yndzyf.com/getimage.ashx?mlszh=",
+				otherType : false,
+			};
+		},
+		goods: {},
+		filters: {
+			tofixed(num) {
+				return Number(num).toFixed(2)
+			}
+		},
+		mounted() {
+			if(this.goods.approvalNumber.includes("械")) this.otherType=true
+		},
+		methods: {
+
+			
+		}
+	}
+</script>
+
+<style lang="scss">
+	.notTheLastOne {
+
+		border-top: 6px solid rgb(249, 249, 249);
+	}
+  
+
+	.goods-item {
+		box-sizing: border-box;
+		display: inline;
+
+		.goods-item-left {
+			justify-content: center;
+			display: flex;
+			align-items: center;
+
+			.goods-pic {
+				width: 140px;
+				height: 140px;
+				display: block;
+				border-radius: 10%;
+			}
+		}
+
+		.goods-item-right {
+			display: flex;
+			flex: 1;
+			flex-direction: column;
+			justify-content: space-between;
+      
+		  .goods-bq-box{
+			display: inline-grid;
+			height: 100%;
+			padding: rpx 0;
+			font-size: 26rpx;
+			align-items: center;  
+			.space {
+				color: #ffffff;
+			}
+        
+           
+        .goods-bq{
+			    border: 1px solid #ec7063;  
+			text-align: center;
+            align-items:left;
+            padding: 5rpx 5px 5rpx 5px;
+            font-size: 24rpx;
+            width: auto;
+            color: #ffffff;
+            border-radius: 5px;
+            line-height: 1;          
+          }
+		.goods-bq2{
+				  	    border: 1px solid #68d568;
+				  	text-align: center;
+				      align-items:left;
+				      padding: 5rpx 5px 5rpx 5px;
+				      font-size: 24rpx;
+				      width: auto;
+				      color: #ffffff;
+				      border-radius: 5px;
+				      line-height: 1;          
+				    }  
+      }
+      
+      
+      
+      
+			.goods-desc {
+				color: #bebebe;
+				font-size: 12px;
+				overflow: hidden;
+				text-overflow: ellipsis; /* 超出部分省略号 */
+				display: -webkit-box; /** 对象作为伸缩盒子模型显示 **/
+				-webkit-box-orient: vertical; /** 设置或检索伸缩盒对象的子元素的排列方式 **/
+				-webkit-line-clamp: 1; /** 显示的行数 **/
+
+			}
+
+			.goods-name {
+				font-size: 14px;
+				// font-weight: bold;
+			}
+
+			.goods-info-box {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+
+				.space {
+					color: #ffffff;
+				}
+
+				.goods-price {
+					color: #c01a04;
+					font-size: 15px;
+					font-family: fantasy;
+				}
+       
+
+			}
+		}
+	}
+	
+	.goods-box{
+		display: flex;
+		align-items: center;
+		justify-content: left;
+	}
+	
+	.goods-box-name{
+		line-height: normal;
+		text-overflow: ellipsis;
+		// display: -webkit-box; 
+		-webkit-line-clamp: 1;
+		-webkit-box-orient:vertical;
+		word-break: break-all;
+		padding-right: 5px;
+	}
+	
+	.has-stock-tag{
+		border-radius: 4px;
+		border: 1px solid rgb(52, 152, 219);
+		font-size: 10px;
+		color: rgb(52, 152, 219);
+		text-align: center;
+		justify-content: center;
+		align-items: center;
+		display: flex;
+		padding: 1px 2px;
+		white-space: nowrap;
+	}
+	
+	.is-reserve-tag{
+		border-radius: 4px;
+		border: 1px solid rgb(236, 112, 99);
+		font-size: 10px;
+		color: rgb(236, 112, 99);
+		text-align: center;
+		justify-content: center;
+		align-items: center;
+		display: flex;
+		padding: 1px 2px;
+		white-space: nowrap;
+	}
+			
+</style>

@@ -1,0 +1,69 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/shopcart/shopcart",
+    "pages/user/user",
+    "pages/search/search",
+    "pages/search_list/search_list",
+    "pages/drug_details/drug_details",
+    "pages/user_config/user_config",
+    "pages/user_path_list/user_path_list",
+    "pages/user_add_path/user_add_path",
+    "pages/user_order/user_order",
+    "pages/confirm_order/confirm_order",
+    "pages/payment/payment",
+    "pages/payment_success/payment_success",
+    "pages/login/login",
+    "pages/authenticate/authenticate",
+    "pages/consultation/consultation",
+    "pages/category/category",
+    "pages/shopping_cart/shopping_cart",
+    "pages/shops_selling_This_goods/shops_selling_This_goods",
+    "pages/goods_details/goods_details",
+    "pages/goods_user/goods_user"
+  ],
+  "subPackages": [],
+  "window": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "云找药",
+    "navigationBarBackgroundColor": "#1296DB",
+    "backgroundColor": "#1296DB"
+  },
+  "tabBar": {
+    "selectedColor": "#1296DB",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "首页",
+        "iconPath": "static/tabbar/search.png"
+      },
+      {
+        "pagePath": "pages/category/category",
+        "text": "分类",
+        "iconPath": "static/tabbar/classify.png"
+      },
+      {
+        "pagePath": "pages/shopping_cart/shopping_cart",
+        "text": "购物车",
+        "iconPath": "static/tabbar/shoppingCart.png"
+      },
+      {
+        "pagePath": "pages/user/user",
+        "text": "个人中心",
+        "iconPath": "static/tabbar/list.png"
+      }
+    ]
+  },
+  "permission": {
+    "scope.userLocation": {
+      "desc": "你的位置信息将用于小程序位置接口的效果展示"
+    },
+    "scope.userFuzzyLocation": {
+      "desc": "你的位置信息将用于小程序位置接口的效果展示"
+    }
+  },
+  "requiredPrivateInfos": [
+    "getLocation"
+  ],
+  "usingComponents": {}
+}

@@ -1,0 +1,109 @@
+<template>
+	<view class="example">
+		<view class='path-item' v-for='(item,index) in list' :key='index' @click="checkLocation(item)">
+			<view class='item-main'>
+				<view class='item-name'>{{item.name}}</view>
+				<view class='item-name'>{{item.tel}}</view>
+			</view>
+			<view class='item-main' style="align-items: flex-start; margin-left: 60rpx;">
+				<view class='active' v-if='item.isDefault==1'>默认</view>
+				<view class='item-name'>{{item.city}} {{item.details}}</view>
+			</view>
+		</view>
+	</view>
+</template>
+
+<script>
+	import request from '@/common/api/request.js'
+	export default {
+		data() {
+			return {
+				shops: [],
+				totalPrice: 0, // 总价
+				selectedAddress: {},
+				shippingFee: 0.00,
+				checkboxSelected: false,
+				totalNum: 0,
+				list: [],
+				selectedList: [],
+				isEnableClick: true,
+				popup: true,
+			}
+		},
+		methods: {
+			async getAddressList() {
+				const url = '/api/user/getAddressList';
+				const method = 'POST';
+				const data = {
+					openid: uni.getStorageSync("openid"),
+				};
+				try {
+					const response = await request('yzy_app', url, method, data);
+					console.log(response); //统一格式：{"data":{}, "flag":99, "result":"成功"}
+					if (response.code == 99) {
+						this.list = response.data.data;
+						console.log("展示目前的this.list");
+						console.log(this.list);
+						//如果该用户无地址信息
+						if (this.list === null) {
+							uni.showToast({
+								title: "无地址信息，3s后跳转地址维护界面",
+								duration: 3000,
+								icon: 'none',
+								mask: true
+							})
+							setTimeout(function() {
+								uni.navigateTo({
+									url: '/pages/user-add-path/addPath',
+								})
+							}, 3000);
+						} else {
+							uni.$emit('pageClosedLocation', this.list[0]);
+						}
+					} else {
+						console.log("-99" + response.result);
+					}
+				} catch (error) {
+					console.log(error);
+				}
+			},
+			//用户点击某一个地址时，将这个地址的信息传递回父组件
+			checkLocation(item) {
+				var that = this;
+				uni.$emit('pageClosedLocation', item);
+				that.addOver("1");
+			},
+			addOver(res) {
+				//通知父组件添加完毕
+				var that = this
+				that.$emit('fatherMethod', res);
+			},
+		},
+		onLoad() {
+
+		},
+		mounted() {
+			this.getAddressList();
+			console.log("getAddressList");
+			console.log('测试进来了');
+			if (this.list.length === 0) {
+				console.log("return了");
+				return;
+			} else {
+				console.log("没有return");
+				// uni.$emit('pageClosedLocation', this.list[0]);
+				this.addOver("1");
+			}
+		}
+	};
+</script>
+
+<style>
+	.example {
+		padding: 15px;
+		background-color: #fff;
+		border-radius: 15px;
+		width: 90vw;
+		height: 700rpx;
+	}
+</style>

@@ -1,0 +1,147 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/shopcart/shopcart",
+    "pages/user/user",
+    "pages/search/search",
+    "pages/search_list/search_list",
+    "pages/drug_details/drug_details",
+    "pages/user_config/user_config",
+    "pages/user_add_path/user_add_path",
+    "pages/user_order/user_order",
+    "pages/payment/payment",
+    "pages/payment_success/payment_success",
+    "pages/login/login",
+    "pages/authenticate/authenticate",
+    "pages/privacy_policy/privacy_policy",
+    "pages/agreement_order/agreement_order",
+    "pages/user_service_agreement/user_service_agreement",
+    "pages/category/category",
+    "pages/shops_selling_This_goods/shops_selling_This_goods",
+    "pages/goods_details/goods_details",
+    "pages/goods_user/goods_user",
+    "pages/category/category_page",
+    "pages/user-path-list/pathList",
+    "pages/user-add-path/addPath",
+    "pages/shopping_cart/shopping_cart",
+    "pages/confirm_order/confirm_order",
+    "pages/consultation/consultation",
+    "pages/agreement/agreement",
+    "pages/outer_webview/outer_webview",
+    "pages/shop_certificate/shop_certificate",
+    "pages/user_recipe/user_recipe",
+    "pages/recipe_detail/recipe_detail",
+    "pages/public_account/public_account",
+    "pages/outer_webview/outer_webview2",
+    "pages/goods_list/goods_list",
+    "pages/purchased_goods_details/purchased_goods_details",
+    "pages/goods_order/goods_order",
+    "pages/goods_order_search/goods_order_search",
+    "pages/goods_order_warning/goods_order_warning",
+    "pages/goods_order_detail/goods_order_detail",
+    "pages/goods_order_location/goods_order_location",
+    "pages/goods_order_warning_shop/goods_order_warning_shop",
+    "pages/goods_order_address_select/goods_order_address_select",
+    "pages/goods_order_history/goods_order_history",
+    "pages/video_page/video_page"
+  ],
+  "subPackages": [
+    {
+      "root": "subPackage_appointment",
+      "pages": [
+        "index/index",
+        "appointment/appointment",
+        "appointment/submit_appointment",
+        "doctor_queryAppointment/doctor_queryAppointment",
+        "user_queryAppointment/user_queryAppointment",
+        "Choose_department/Choose_department",
+        "choose_doctor/choose_doctor"
+      ]
+    },
+    {
+      "root": "subPackage_yinhai",
+      "pages": [
+        "index/index"
+      ],
+      "plugins": {
+        "yinHaiPlugin": {
+          "version": "dev-5ff6a0648d551aa0db9127a8e953cbb7",
+          "provider": "JIUYUANYINHAI"
+        }
+      }
+    }
+  ],
+  "window": {
+    "navigationBarTextStyle": "white",
+    "navigationBarTitleText": "云找药",
+    "navigationBarBackgroundColor": "#1296DB",
+    "backgroundColor": "#1296DB"
+  },
+  "tabBar": {
+    "selectedColor": "#1296DB",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "买药",
+        "iconPath": "static/tabbar/pill_png.png"
+      },
+      {
+        "pagePath": "pages/goods_order/goods_order",
+        "text": "预订药",
+        "iconPath": "static/tabbar/goods_order.png"
+      },
+      {
+        "pagePath": "pages/category/category",
+        "text": "分类",
+        "iconPath": "static/tabbar/view-thumb_png.png"
+      },
+      {
+        "pagePath": "pages/shopping_cart/shopping_cart",
+        "text": "购物车",
+        "iconPath": "static/tabbar/cart_png.png"
+      },
+      {
+        "pagePath": "pages/user/user",
+        "text": "我的",
+        "iconPath": "static/tabbar/user_png.png"
+      }
+    ]
+  },
+  "preloadRule": {
+    "pages/index/index": {
+      "network": "all",
+      "packages": [
+        "__APP__"
+      ]
+    },
+    "subPackage_appointment/index/index": {
+      "network": "all",
+      "packages": [
+        "subPackage_appointment"
+      ]
+    },
+    "subPackage_yinhai/index/index": {
+      "network": "all",
+      "packages": [
+        "subPackage_yinhai"
+      ]
+    }
+  },
+  "permission": {
+    "scope.userLocation": {
+      "desc": "你的位置信息将用于小程序位置接口的效果展示"
+    },
+    "scope.startLocationUpdate": {
+      "desc": "你的位置信息将用于小程序位置接口的效果展示"
+    }
+  },
+  "requiredPrivateInfos": [
+    "getLocation",
+    "onLocationChange",
+    "startLocationUpdate",
+    "chooseAddress",
+    "chooseLocation"
+  ],
+  "runmode": "liberate",
+  "usingComponents": {}
+}

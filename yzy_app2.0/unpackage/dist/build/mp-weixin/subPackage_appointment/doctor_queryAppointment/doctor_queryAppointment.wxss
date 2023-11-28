@@ -1,0 +1,1 @@
+.appointment-box{padding:5px;display:flex;border-radius:5px;margin-top:5px}.appointment-card{margin:auto;background:#fff;border-radius:10px;width:92vw;padding:2vw;margin-top:10px}page{background:#f2f3f5}

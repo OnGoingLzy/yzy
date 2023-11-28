@@ -1,0 +1,7 @@
+{
+  "defaultTitle": "搜索",
+  "pullRefresh": false,
+  "usingComponents": {
+    "goods-list": "/components/goods_order/goods_list/goods_list"
+  }
+}

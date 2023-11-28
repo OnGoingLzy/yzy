@@ -1,0 +1,687 @@
+<template>
+	<view class="box">
+		<!-- 购物车内容显示 -->
+		<view class="box_content">
+			<view class="box_content_all" v-for="items in shops" :key='items.id'>
+				<view>
+					<text class="shop-name">{{items.shopName}}</text>
+				</view>
+				<view class="box_content_one" v-for="item in items.drugs" :key='item.id'>
+					<view class="box_content_oput">
+						<view class="box_content_oput_input">
+							<checkbox-group @change="checkboxChange($event, items.id, item.id)">
+								<checkbox :value="item.id" :checked="item.isChecked" />
+							</checkbox-group>
+						</view>
+						<view class="box_content_oput_imges">
+							<image :src="item.imgLszh ? 'http://images.yndzyf.com/getimage.ashx?mlszh=' + item.imgLszh : defaultPic" mode="">
+							</image>
+						</view>
+					</view>
+					<view class="box_content_number">
+						<view class="trashDel">
+							<view class="box_content_title">
+								{{item.drugName}}
+							</view>
+							<uni-icons type="trash" size="17" @click="clean(item)"></uni-icons>
+						</view>
+						<view class="badge">
+							<view class="is-reserve-tag" v-if="item.isRx === 'True'">
+								<text>处方药</text>
+							</view>
+							<view class="has-stock-tag" v-if="item.isRx === 'False'">
+								<text>非处方药</text>
+							</view>
+							<view class="have-Rx" v-if="item.recipeStatus === 'AUDIT'">
+								<text>已有处方</text>
+							</view>
+							<view class="not-have-Rx" v-if="item.recipeStatus === 'ISSUE'">
+								<text>待审方</text>
+							</view>
+						</view>
+						<view class="box_content_effect">
+							{{item.specification}}
+						</view>
+						<view class="box_content_and">
+							<view class="box_content_number_discount" v-text="'￥' + item.price.toFixed(2)"></view>
+							<uni-number-box class="count-box" v-model="item.num" :min="1" :max="item.numMax"
+								:disabled="item.isRx === 'True'"
+								@change="setCart" />
+						</view>
+					</view>
+				</view>
+			</view>
+		</view>
+		<view class="blank"></view>
+		<!-- 底部导航栏 -->
+		<view class="tabbar">
+			<view class="all">
+				<checkbox-group @change="checkboxChangeAll">
+					<checkbox :checked="isAllChecked" />全选
+				</checkbox-group>
+			</view>
+			<view class="totalPrice">
+				<text class="totalPrice_ff">合计:</text>
+				<text class="totalPrice_red" v-text="'￥' + totalPrice.toFixed(2)"></text>
+			</view>
+			<view class="submitOrder" @tap="submitOrder">
+				付款
+			</view>
+		</view>
+	</view>
+</template>
+
+<script>
+	import request from '@/common/api/request.js'
+	export default {
+		data() {
+			return {
+				//购物车有无商品
+				show: true,
+				//全选是否选中
+				isAllChecked: false, //是否全选
+				totalPrice: 0, //总价
+				//门店的内容，目前先写死数据，等后期通过数据库层获取到数据
+				shops: [],
+				selectedShops: [],
+				selectedGoods: [],
+				shopCommit: [],
+				defaultPic: 'http://images.yndzyf.com/getimage.ashx?mlszh=17700932'
+			}
+		},
+		methods: {
+			setCart() { //计算总价
+				let totalPrice = 0;
+				this.selectedShops = [];
+				this.selectedGoods = [];
+				this.shops.forEach(shop => {
+					shop.drugs.forEach(drug => {
+						if (drug.isChecked) {
+							totalPrice += drug.num * drug.price.toFixed(2);
+							this.selectedShops.push(shop.id);
+							this.selectedGoods.push(drug.id);
+						}
+					});
+				});
+				this.totalPrice = totalPrice;
+				console.log(this.selectedShops);
+			},
+			// 全选
+			checkboxChangeAll(e) {
+				if (this.shops === null) {
+					return;
+				}
+				this.isAllChecked = !this.isAllChecked
+				this.shops.forEach(shop => {
+					shop.drugs.forEach(drug => {
+						drug.isChecked = this.isAllChecked
+					});
+				});
+				this.setCart()
+			},
+			checkboxChange: function(e, shopId, drugId) {
+				var temp = [];
+
+				// 找到被修改的商品对象
+				let shopIndex = this.shops.findIndex(v => v.id === shopId);
+				if (shopIndex === -1) {
+					this.setCart();
+					return;
+				}
+				let drugIndex = this.shops[shopIndex].drugs.findIndex(v => v.id === drugId);
+				if (drugIndex === -1) {
+					this.setCart();
+					return;
+				}
+				// 选中状态取反
+				this.shops[shopIndex].drugs[drugIndex].isChecked = !this.shops[shopIndex].drugs[drugIndex].isChecked;
+
+				// 判断是否全选
+				temp = this.shops.every(shop => shop.drugs.every(drug => drug.isChecked));
+				this.isAllChecked = temp;
+
+				this.setCart();
+			},
+			submitOrder() { // 提交购物车订单
+				// 判断是否选择购物车商品
+				if (this.totalPrice <= 0.00) {
+					uni.showToast({
+						title: "必须先选中最少一个商品才可以进行结算",
+						icon: "none",
+						duration: 3000
+					});
+					return;
+				} else {
+					let uniqueArr = Array.from(new Set(this.selectedShops));
+					//判断有没有选中其他家的商品
+					if (uniqueArr.length > 1) {
+						uni.showToast({
+							title: "单次只能对一家门店的商品进行结算",
+							icon: "none",
+							duration: 3000
+						});
+						return;
+					}
+
+					//uniqueArr[0]代表目前已经选中的门店是哪一家id
+					//this.selectedGoods代表购物车中已选中的药品的ID
+					const id = uniqueArr[0];
+					const drugIds = this.selectedGoods;
+
+					const result = this.shops.filter(item => item.id === id)
+						.map(item => ({
+							...item,
+							drugs: item.drugs.filter(drug => drugIds.includes(drug.id))
+						}));
+					console.log(JSON.stringify(result));
+
+					console.log("校验购物车中的处方药");
+					console.log(JSON.stringify(this.selectedGoods));
+					console.log(JSON.stringify(this.shops));
+					
+					//需要判断如果用户购买的商品中包含了待审方的药品，则需要进行提示：未审方不允许购买商品
+					let isIssue = result[0].drugs.some(drug => {
+						return this.selectedGoods.includes(drug.id) && drug.recipeStatus === 'ISSUE';
+					});
+
+					if (isIssue) {
+						uni.showToast({
+							title: "提交的订单中存在待审方的处方药",
+							icon: "none",
+							duration: 3000
+						});
+						return;
+					}
+					
+					
+
+					//跳转到结算页面
+					uni.navigateTo({
+						url: `/pages/confirm_order/confirm_order?drug=${encodeURIComponent(JSON.stringify(result))}`,
+					})
+				}
+			},
+			//获取该用户的购物车中的信息
+			async getUserCartGoods() {
+				const url = '/api/user/getUserCartGoods';
+				const method = 'POST';
+				const data = {
+					openid: uni.getStorageSync("openid"),
+					phone: uni.getStorageSync("phone"),
+				};
+				try {
+					const response = await request('yzy_app', url, method, data);
+					console.log(this.shops); //统一格式：{"data":{}, "flag":99, "result":"成功"}
+					this.shops = JSON.parse(response.data);
+				} catch (error) {
+					console.log(error);
+				}
+			},
+			unchecked() {
+				this.isAllChecked = false;
+				this.shops.forEach(shop => {
+					shop.drugs.forEach(drug => {
+						drug.isChecked = this.isAllChecked
+					});
+				});
+				this.setCart();
+			},
+			clean(item) {
+				var that = this;
+				console.log(item.id);
+				uni.showModal({
+					title: '删除',
+					content: '是否删除该条记录',
+					success: function(res) {
+						if (res.confirm) {
+							that.delUserCartGoods(item.id);
+							that.getUserCartGoods();
+							if (that.shops !== null) {
+								that.unchecked();
+							} else {
+								uni.showToast({
+									title: "购物车空空如也，请先去添加商品！",
+									icon: "error",
+									duration: 3000
+								});
+							}
+						} else if (res.cancel) {
+							return
+						}
+					}
+				});
+			},
+			//用户删除购物车中的数据
+			async delUserCartGoods(id) {
+				const url = '/api/user/delUserCartGoods';
+				const method = 'POST';
+				const data = {
+					openid: uni.getStorageSync("openid"),
+					cartId: id
+				};
+				try {
+					const response = await request('yzy_app', url, method, data);
+					//统一格式：{"data":{}, "flag":99, "result":"成功"}
+					this.getUserCartGoods();
+					uni.$showMsg('删除成功', 3000);
+				} catch (error) {
+					console.log(error);
+				}
+			},
+		},
+		onShow() {
+			this.getUserCartGoods();
+			if (this.shops !== null) {
+				this.unchecked();
+			} else {
+				uni.showToast({
+					title: "购物车空空如也，请先去添加商品！",
+					icon: "error",
+					duration: 3000
+				});
+			}
+		}
+	}
+</script>
+
+<style lang="scss">
+	.box {
+		width: 100%;
+		background-color: #F7FCFF;
+		border-top: 1rpx transparent solid;
+
+		.border {
+			width: 100%;
+			height: 130rpx;
+			line-height: 160rpx;
+			background-color: #ffffff;
+			display: flex;
+			justify-content: space-between;
+			position: fixed;
+			z-index: 999;
+			top: 0;
+
+			.border_left {
+				padding: 14rpx 20rpx;
+				font-size: 28rpx;
+				color: #333333;
+			}
+
+			.border_center {
+				padding-right: 96rpx;
+				font-size: 36rpx;
+				font-weight: 600;
+			}
+		}
+
+		.border-lis {
+			width: 100%;
+			height: 130rpx;
+		}
+
+		.box_content {
+			.box_content_one {
+				width: 712rpx;
+				height: 268rpx;
+				background: #FFFFFF;
+				border-radius: 20rpx;
+				margin: 30rpx auto;
+				display: flex;
+				box-sizing: border-box;
+				position: relative;
+
+				.box_content_oput {
+					display: flex;
+
+					.box_content_oput_input {
+						padding: 92rpx 10rpx;
+
+						/* #ifdef APP-PLUS ||MP-WEIXIN */
+						checkbox .wx-checkbox-input {
+							border-radius: 50% !important;
+							/* color: #ffffff !important; */
+						}
+
+						checkbox .wx-checkbox-input.wx-checkbox-input-checked {
+							color: #333;
+							background-image: linear-gradient(to right, #1296DB, #1296DB);
+						}
+
+						/* .wx-checkbox-input.wx-checkbox-input-checked {
+										border: none !important;
+									} */
+						/* #endif */
+					}
+
+					.box_content_oput_imges {
+						width: 100%;
+						margin: 30rpx 0rpx auto;
+
+						image {
+							width: 205rpx;
+							height: 205rpx;
+						}
+					}
+				}
+
+				.box_content_number {
+					padding: 35rpx 20rpx;
+
+					.box_content_title {
+						width: 370rpx;
+						height: 56rpx;
+						font-size: 28rpx;
+						font-family: PingFangSC-Regular, PingFang SC;
+						font-weight: 400;
+						color: #000000;
+						line-height: 28rpx;
+						//字体超出俩行 隐藏显示省略号
+						overflow: hidden;
+						text-overflow: ellipsis;
+						display: -webkit-box;
+						-webkit-line-clamp: 2;
+						-webkit-box-orient: vertical;
+					}
+
+					.box_content_effect {
+						width: 242rpx;
+						height: 24rpx;
+						font-size: 24rpx;
+						font-family: PingFangSC-Regular, PingFang SC;
+						font-weight: 400;
+						color: #7E7E7E;
+						line-height: 24rpx;
+						background-color: #fff;
+						margin-top: 10rpx;
+					}
+
+					.box_content_and {
+						display: flex;
+						padding: 10rpx 0rpx;
+
+						.box_content_number_discount {
+							font-size: 40rpx;
+							font-family: PingFangSC-Regular, PingFang SC;
+							font-weight: 400;
+							color: #FF4E3B;
+						}
+
+						.box_content_number_original {
+							color: #999999;
+							font-size: 22rpx;
+							padding: 15rpx 20rpx;
+						}
+					}
+
+				}
+
+				.calculator {
+					position: absolute;
+					display: flex;
+					top: 62%;
+					left: 78%;
+
+					.left_i {
+						width: 30rpx;
+					}
+
+					.center_con {
+						width: 40rpx;
+						background-color: #F6F6F6;
+						padding: 0rpx 20rpx;
+						text-align: center;
+					}
+
+					.right_i {
+						width: 30rpx;
+					}
+				}
+			}
+
+		}
+
+		.box_botton {
+			width: 100%;
+			margin-bottom: 50rpx;
+			font-family: PingFangSC-Regular, PingFang SC;
+
+			.box_bottcontent {
+				width: 95%;
+				margin: auto;
+				display: flex;
+				flex-flow: initial;
+				flex-wrap: wrap;
+				align-items: center;
+
+				.box_bottent {
+					// width: 330rpx;
+					width: 46%;
+					background: #ffffff;
+					border-radius: 12rpx;
+					margin: 15rpx 14rpx;
+					box-sizing: border-box;
+
+					.box_boent_one {
+						width: 330rpx;
+						height: 330rpx;
+					}
+
+					.box_boent_one image {
+						width: 100%;
+						height: 100%;
+						border-radius: 12rpx;
+					}
+
+					.box_boent_two {
+						width: 300rpx;
+						height: 58rpx;
+						padding: 20rpx 20rpx;
+						font-size: 28rpx;
+						font-family: PingFangSC-Regular, PingFang SC;
+						font-weight: 400;
+						color: #0F0C10;
+						overflow: hidden;
+						text-overflow: ellipsis;
+						display: -webkit-box;
+						-webkit-line-clamp: 2;
+						-webkit-box-orient: vertical;
+					}
+
+					.box_boent_three {
+						display: flex;
+						flex-flow: initial;
+						justify-content: space-between;
+						padding: 20rpx 10rpx;
+
+						.box_boent_three_ins {
+							width: 130rpx;
+							height: 28rpx;
+							line-height: 28rpx;
+							font-size: 36rpx;
+							font-family: PingFangSC-Regular, PingFang SC;
+							font-weight: 600;
+							color: #FF4E3B;
+							display: flex;
+							flex-direction: row;
+
+							text {
+								font-size: 20rpx;
+								padding-top: 8rpx;
+							}
+						}
+
+						.box_boent_three_let {
+							font-size: 20rpx;
+							color: #999999;
+							background: #FFFFFF;
+						}
+					}
+				}
+			}
+		}
+
+		// 底部导航
+		.tabbar {
+			width: 95%;
+			height: 112rpx;
+			background-color: #ffffff;
+			position: fixed;
+			bottom: -5rpx;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			padding-left: 30rpx;
+			z-index: 999;
+
+			// border-radius: 8% 8%;
+			.all {
+				font-size: 32rpx;
+				color: #3E3E3E;
+				letter-spacing: 2.29rpx;
+				display: flex;
+
+				/* #ifdef APP-PLUS ||MP-WEIXIN */
+				checkbox .wx-checkbox-input {
+					border-radius: 50% !important;
+					/* color: #ffffff !important; */
+				}
+
+				checkbox .wx-checkbox-input.wx-checkbox-input-checked {
+					color: #333;
+					background-image: linear-gradient(to right, #1296DB, #1296DB);
+				}
+
+				/* .wx-checkbox-input.wx-checkbox-input-checked {
+								border: none !important;
+							} */
+				/* #endif */
+			}
+
+			.totalPrice {
+				letter-spacing: 2.29rpx;
+				padding-left: 160rpx;
+
+				.totalPrice_ff {
+					font-size: 24rpx;
+					color: #999999;
+				}
+
+				.totalPrice_red {
+					font-size: 32rpx;
+					color: #FF4E3B;
+				}
+			}
+
+			.submitOrder {
+				width: 208rpx;
+				height: 80rpx;
+				background-image: linear-gradient(to right, #1296DB, #1296DB);
+				border-radius: 60rpx;
+				font-size: 36rpx;
+				color: #FFFFFF;
+				letter-spacing: 2.57rpx;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+			}
+		}
+	}
+
+	.count-box {
+		margin-left: auto;
+		padding-top: 10rpx;
+		padding-right: 10rpx;
+	}
+
+	.shop-name {
+		font-size: 32rpx;
+		padding-left: 18rpx;
+		font-weight: bold;
+	}
+
+	.box_content_all {
+		margin-top: 20rpx;
+		margin-bottom: 10rpx;
+		padding-top: 10rpx;
+		padding-bottom: 5rpx;
+		background-color: #F7FCFF;
+	}
+
+	.blank {
+		height: 75rpx;
+	}
+
+	.is-reserve-tag {
+		border-radius: 4px;
+		border: 1px solid rgb(236, 112, 99);
+		font-size: 10px;
+		color: rgb(236, 112, 99);
+		text-align: center;
+		justify-content: center;
+		align-items: center;
+		display: flex;
+		padding: 0px 2px;
+		white-space: nowrap;
+		width: 60rpx;
+		margin-top: 10rpx;
+	}
+
+	.has-stock-tag {
+		border-radius: 4px;
+		border: 1px solid rgb(52, 152, 219);
+		font-size: 10px;
+		color: rgb(52, 152, 219);
+		text-align: center;
+		justify-content: center;
+		align-items: center;
+		display: flex;
+		padding: 0px 2px;
+		white-space: nowrap;
+		width: 76rpx;
+		margin-top: 10rpx;
+	}
+
+	.not-have-Rx {
+		border-radius: 4px;
+		border: 1px solid rgb(81, 65, 79);
+		font-size: 10px;
+		color: rgb(81, 65, 79);
+		text-align: center;
+		justify-content: center;
+		align-items: center;
+		display: flex;
+		padding: 0px 2px;
+		white-space: nowrap;
+		width: 60rpx;
+		margin-top: 10rpx;
+		margin-left: 10rpx;
+	}
+
+	.have-Rx {
+		border-radius: 4px;
+		border: 1px solid rgb(112, 41, 99);
+		font-size: 10px;
+		color: rgb(112, 41, 99);
+		text-align: center;
+		justify-content: center;
+		align-items: center;
+		display: flex;
+		padding: 0px 2px;
+		white-space: nowrap;
+		width: 76rpx;
+		margin-top: 10rpx;
+		margin-left: 10rpx;
+	}
+
+	.trashDel {
+		display: flex;
+	}
+
+	.badge {
+		display: flex;
+	}
+	
+	uni-number-box{
+		scale: 106%;
+	}
+</style>

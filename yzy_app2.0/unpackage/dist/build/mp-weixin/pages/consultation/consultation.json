@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "问诊开方",
+  "usingComponents": {
+    "uni-number-box": "/uni_modules/uni-number-box/components/uni-number-box/uni-number-box",
+    "uni-tag": "/uni_modules/uni-tag/components/uni-tag/uni-tag"
+  }
+}

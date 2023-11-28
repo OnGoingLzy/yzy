@@ -1,0 +1,23 @@
+
+export default {
+    data() {
+       return {
+            share:{
+               title: '云找药小程序',
+               imageUrl:'http://images.yndzyf.com/getimage.ashx?mlszh=21562111&sy=',
+            }
+       }
+    },
+    onShareAppMessage(res) { //发送给朋友
+        return {
+            title: this.share.title,
+            imageUrl: this.share.imageUrl,
+        }
+    },
+    onShareTimeline(res) {//分享到朋友圈
+        return {
+            title: this.share.title,
+            imageUrl: this.share.imageUrl,
+        }
+    },
+}

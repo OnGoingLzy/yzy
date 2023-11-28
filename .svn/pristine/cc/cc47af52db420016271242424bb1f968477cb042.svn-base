@@ -1,0 +1,38 @@
+<template>
+	<web-view :src="url" @message="bindMessage"></web-view>
+</template>
+
+<script>
+	export default {
+		data() {
+			return {
+				url: '',
+				action: '',
+				clinicId: ''
+			}
+		},
+		methods: {
+			bindMessage(e) {
+				this.action = e.detail.data[0].action;
+				this.clinicId = e.detail.data[0].clinicId;
+				if (this.action === "orderEnd") {
+					uni.$emit('orderEnd', {
+						'action': this.action,
+						'clinicId': this.clinicId
+					});
+				}
+			}
+		},
+		onLoad(query) {
+			console.log('Entered new page!');
+			const urlObj = JSON.parse(decodeURIComponent(query.urlObj));
+			console.log(urlObj);
+			this.url = urlObj.url + 'hosId=' + urlObj.hosId + '&accessToken=' + urlObj.accessToken;
+		}
+
+	}
+</script>
+
+<style>
+
+</style>

@@ -1,0 +1,178 @@
+@charset "UTF-8";
+/**
+ * 这里是uni-app内置的常用样式变量
+ *
+ * uni-app 官方扩展插件及插件市场（https://ext.dcloud.net.cn）上很多三方插件均使用了这些样式变量
+ * 如果你是插件开发者，建议你使用scss预处理，并在插件代码中直接使用这些变量（无需 import 这个文件），方便用户通过搭积木的方式开发整体风格一致的App
+ *
+ */
+/**
+ * 如果你是App开发者（插件使用者），你可以通过修改这些变量来定制自己的插件主题，实现自定义主题功能
+ *
+ * 如果你的项目同样使用了scss预处理，你也可以直接在你的 scss 代码中使用如下变量，同时无需 import 这个文件
+ */
+/* 颜色变量 */
+/* 行为相关颜色 */
+/* 文字基本颜色 */
+/* 背景颜色 */
+/* 边框颜色 */
+/* 尺寸变量 */
+/* 文字尺寸 */
+/* 图片尺寸 */
+/* Border Radius */
+/* 水平间距 */
+/* 垂直间距 */
+/* 透明度 */
+/* 文章场景相关 */
+.active-card {
+  margin: auto;
+  text-align: center;
+  width: 26.3vw;
+  padding: 1vw;
+  background: #fff0de;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  line-height: 16px;
+}
+.certificate-box {
+  display: flex;
+  width: 90%;
+  /* 改变按钮宽度 */
+  height: 50px;
+  border-radius: 25px;
+  /* 增大圆角 */
+  font-size: 18px;
+  font-weight: bold;
+  background: #6991C7;
+  /* fallback for old browsers */
+  /* Chrome 10-25, Safari 5.1-6 修改渐变色 */
+  background: linear-gradient(to right, #6991C7, #9DB8F2);
+  /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ 修改渐变色 */
+  box-shadow: 0px 10px 15px rgba(0, 0, 0, 0.1);
+  /* 添加阴影 */
+  transition: all 0.3s ease;
+  /* 添加过渡动画 */
+  margin: 20rpx 0;
+  align-items: center;
+  justify-content: center;
+}
+.color-container {
+  background: #f5f5f5;
+  /* fallback for old browsers */
+  /* Chrome 10-25, Safari 5.1-6 */
+  background: linear-gradient(to bottom, #1296DB, #f5f5f5);
+  /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+}
+.recommendation-title {
+  background: #a6d0d4;
+  /* fallback for old browsers */
+  position: -webkit-sticky;
+  position: sticky;
+  top: 67px;
+  background: #f5f5f5;
+  z-index: 1;
+  padding: 0 10px;
+}
+.search-container {
+  position: -webkit-sticky;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  background: #1296DB;
+  /* fallback for old browsers */
+  height: 48px;
+}
+.search-input {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #0045cf;
+  border-radius: 24px;
+  padding: 2px 2px 2px 2vw;
+  width: 93vw;
+  height: auto;
+  background: white;
+}
+.search-text {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 4vw;
+  color: #1a1a1a;
+}
+.main-container {
+  padding: 2vw;
+  background: white;
+  border-radius: 15px;
+  margin: 0 2vw 2vw 2vw;
+  width: 92vw;
+}
+.main-container2 {
+  min-height: 200px;
+  border-radius: 15px;
+  margin: 2vw;
+  width: 96vw;
+  display: flex;
+  flex-wrap: wrap;
+}
+.recommendation-box {
+  background: white;
+  width: 46%;
+  margin: auto;
+  border-radius: 15px;
+  ackground: white;
+  padding: 1vw;
+  margin-bottom: 10px;
+}
+.grid-item-box {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 0;
+}
+.uni-margin-wrap {
+  border-radius: 15px;
+  width: 96vw;
+  height: 43vw;
+  margin: 2vw;
+}
+.swiper-1 {
+  background: #a8ff78;
+  /* fallback for old browsers */
+  /* Chrome 10-25, Safari 5.1-6 */
+  background: linear-gradient(to bottom, #78ffd6, #a8ff78);
+  /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+  width: 96vw;
+  height: 15vh;
+  border-radius: 15px;
+  text-align: center;
+}
+.swiper-2 {
+  width: 96vw;
+  height: 43vw;
+  border-radius: 15px;
+  text-align: center;
+}
+.icon-class {
+  height: 12vw;
+  width: 12vw;
+}
+.content {
+  background: #f5f5f5;
+}
+.index-bottom {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 30rpx;
+  padding-bottom: 20rpx;
+}
+

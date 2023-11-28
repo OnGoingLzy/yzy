@@ -1,0 +1,1 @@
+<view><view class="goods-list"><view data-event-opts="{{[['tap',[['gotoDetail',['$0'],[[['searchResults','',i]]]]]]]}}" onTap="__e" a:for="{{searchResults}}" a:for-item="goods" a:for-index="i" a:key="i"><goods-list vue-id="{{'6820a296-1-'+i}}" goods="{{goods}}" onVueInit="__l"></goods-list></view></view><view class="isShows">{{''+show+''}}</view></view>

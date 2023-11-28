@@ -1,0 +1,68 @@
+
+.tag1{
+	padding: 0 2px;
+	border-radius: 3px;
+	border: #1296DB 1px solid;
+	color: #1296DB;
+}
+.tag2{
+	padding: 0 2px;
+	border-radius: 3px;
+	border: gray 1px solid;
+	color: gray;
+}
+.time-slot{
+	color: #1296DB;
+	text-align: center;
+	margin-top: 5px;
+	border-radius: 5px;
+	width: 25vw;
+	height: 25px;
+	border: #1296DB 2px solid;
+}
+.time-slot2{
+	color: gray;
+	text-align: center;
+	margin-top: 5px;
+	border-radius: 5px;
+	width: 25vw;
+	height: 25px;
+	border: gray 2px solid;
+}
+.date-container {
+  background: #1296DB;
+  display: flex;
+  justify-content: space-between;
+  padding: 10px;
+}
+.date-item {
+	width: 107rpx;
+  text-align: center;
+  line-height: 19px;
+  border: 2px solid transparent; /* 初始状态无边框 */
+  border-radius: 10px; /* 圆角效果 */
+}
+.date {
+  font-size: 15px;
+  color: #fff;
+}
+.date-item.selected {
+  border-color: #fff; /* 点击后显示黑色边框 */
+}
+.day {
+  font-size: 14px;
+  color: #fff;
+}
+.doctor-card{
+	display: flex;
+	padding: 5px;
+	border-bottom: #f2f3f4 1px solid;
+}
+.avatar{
+	width: 36px;
+	height: 36px;
+	border-radius: 50%;
+	border: 2px solid #FFF;
+	box-shadow: 0 1px 5px black;
+}
+

@@ -1,0 +1,151 @@
+
+page {
+	background-color: #F7FCFF;
+}
+uni-number-box {
+	scale: 110%;
+}
+.title-navi {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 20rpx 26rpx;
+	background-color: white;
+}
+.title-navi-next,
+.more-person-icon {
+	width: 20rpx;
+	height: 20rpx;
+}
+.goods-count-title,
+.select-person-title,
+.disease-list-title {
+	display: flex;
+	font-size: 36rpx;
+	align-items: center;
+}
+.goods-count-firstline,
+.goods-count-secondline,
+.disease-list-firstline {
+	display: flex;
+	align-items: center;
+}
+.goods-count-secondline {
+	padding: 10rpx 0;
+}
+.goods-count {
+	background-color: #FFFFFF;
+	border-radius: 24rpx;
+	padding: 24rpx 24rpx;
+	margin: 36rpx 24rpx 24rpx;
+}
+.more-person {
+	display: flex;
+	align-items: center;
+	margin-left: auto;
+}
+.select-person-firstline {
+	display: flex;
+	align-items: center;
+}
+.select-person,
+.disease-list {
+	background-color: #FFFFFF;
+	border-radius: 24rpx;
+	padding: 24rpx 24rpx;
+	margin: 36rpx 24rpx 24rpx;
+}
+.more-person-icon {
+	padding: 0 10rpx;
+}
+.star-sign {
+	color: red;
+	padding-right: 10rpx;
+}
+.count-box {
+	margin-left: auto;
+}
+.person-item {
+	background-color: #F9F9F9;
+	padding: 12rpx 60rpx 12rpx 24rpx;
+	margin: 24rpx 12rpx 12rpx 8rpx;
+	border-radius: 12rpx;
+	border: #FFFFFF solid 4rpx;
+	color: gray;
+}
+.person-name {
+	font-weight: bold;
+	font-size: 30rpx;
+}
+.person-row {
+	flex-wrap: wrap;
+}
+.persong-item-selected {
+	background-color: #1296DB;
+	padding: 12rpx 60rpx 12rpx 24rpx;
+	margin: 24rpx 12rpx 12rpx 8rpx;
+	border-radius: 12rpx;
+	border: #1296DB solid 4rpx;
+	color: white;
+}
+.seperator {
+	border-top: 1rpx solid #EEEEEE;
+	padding: 0 0 18rpx 0;
+}
+.allergy-history {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 24rpx 0 0 0
+}
+.button-selected {
+	background-color: #1296DB !important;
+	color: white !important;
+}
+.button-default {
+	background-color: #F2F7F5 !important;
+	color: black !important;
+}
+.allergy-history-title {
+	font-size: 32rpx;
+	padding-right: 48rpx;
+}
+.mini-btn {
+	display: flex !important;
+	width: 180rpx;
+	height: 80rpx;
+	justify-content: center !important;
+	align-items: center !important;
+	font-size: 30rpx !important;
+}
+.disease-list-parent {
+	display: flex;
+	flex-wrap: wrap;
+}
+.disease-item {
+	padding: 16rpx 10rpx;
+}
+.disease-list-secondline {
+	padding-top: 10rpx;
+}
+.checkbox-item {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 36rpx 0 24rpx 0;
+}
+.commit-consult {
+	background-color: #1296DB !important;
+	margin: 8rpx 20rpx;
+}
+.person-age {
+	padding-left: 20rpx;
+}
+.blank-setting{
+	height: 50rpx;
+}
+.uni-tag--primary{
+	background-color: #1296DB !important;
+	border-color: #1296DB !important;
+}
+

@@ -1,0 +1,699 @@
+<template>
+	<view class="content">
+		<view style="position: fixed;z-index: 9999;top: 0;width: 100%;">
+			<view class="search-container">
+				<view class="search-input" @click="toNewSearch()">
+				  <input type="text" class="search-text"  disabled="true" placeholder="药名、品牌、厂家、症状"/>
+				  <view style="height: 100%;width: 40px;text-align: center;" >
+					  <text class="voice-icon" style="    line-height: 30px;">×</text>
+				  </view>
+				  <view>
+				  <button  @tap="toNewSearch()" style="height: 30px; max-width: 20vw; border-radius: 30px; background-color: #409EFF; color: #fff; font-size: 14px;display: flex;justify-content: center;">
+				    <text style="line-height: 30px;">搜索</text>
+				  </button>
+				  </view>
+				  
+				</view>
+			</view>
+			
+			<view class="choice-bar-container">
+				<view class="choice-bar-item-box"  @click="selectBar('test1')">
+					<text ref="text1"  :style="{ color: choiceBar === 'test1' ? '#1296DB' : 'black' }" >商品</text>
+				</view>	
+				<view class="choice-bar-item-box"  @click="selectBar('test2')">
+					<text ref="text2"  :style="{ color: choiceBar === 'test2' ? '#1296DB' : 'black' }">详情</text>
+				</view>	
+			</view>
+		</view>
+		
+		
+		<view class="goods-img-container">
+			<view class="goods-img-swiper">
+				<swiper class="swiper" :indicator-dots="true" :autoplay="true" :interval="4000" :duration="1000" :circular="true">
+					<swiper-item v-for="(item, i) in goods.goodsImg" :key="i" v-if="goods.goodsType!='处方药'">
+						<image style="height: 100%;width: 100%;" 
+							:src="(imgurl+item.tplszh)=='http://images.yndzyf.com/getimage.ashx?mlszh=undefined'?defaultPic:(imgurl+item.tplszh)"
+							@error="() => handleImageError(i)"></image>
+					</swiper-item>
+					<swiper-item v-if="goods.goodsType=='处方药'">
+						<image style="height: 100%;width: 100%;" 
+							:src="(imgurl+goods.goodsImg[0].tplszh)=='http://images.yndzyf.com/getimage.ashx?mlszh=undefined'?defaultPic:(imgurl+goods.goodsImg[0].tplszh)"
+							@error="() => handleImageError(0)" :style="{filter : goods.goodsType!='处方药'?'blur(0)':'blur(5px);'}"></image>
+							<view v-if="goods.goodsType=='处方药'" style="    position: absolute;
+																	top: 50%;
+																	text-align: center;
+																	transform: translate(-50%, -50%);
+																	left: 50%;">
+								<text style="font-size: 18px;">处方药,开方后可查看详细信息</text>
+							</view>
+					</swiper-item>
+					
+				</swiper>
+			</view>
+		</view>
+		
+		<view class="goods-detail-container">
+			<view class="goods-price">
+				<text v-text="'¥'+shop.price"></text>
+			</view>
+			<view class="goods-name-container">
+				<view class="goods-tag-box">
+					  <view class="goods-bq" v-if="goods.goodsType=='处方药' " style="color: #ec7063;">处方药</view>
+					  
+					  <view class="goods-bq2" v-if="goods.goodsType=='非处方药' " style="color: #68d568;">OTC</view>  
+				</view>
+				<view class="goods-name">
+					<text v-text="goods.goodsName+' '"></text>
+					<text v-text="goods.genericName+' '"></text>
+					<text v-text="goods.manufacturer+' '"></text>
+				</view>
+			</view>
+			<view>
+				<text style="color: #bfbfbf;font-size: 14px;" v-if="goods.goodsType=='处方药' ">处方药需凭处方在药师指导下购买和使用</text>
+			</view>
+			
+			<view class="goods-info" v-if="goods.goodsType!='处方药' ">
+				<view class="goods-info-box">
+					<view>
+						<text style="font-weight: bold;font-size: 14px;">适应症</text>
+					</view>
+					<view style="display: flex; ">
+						<text style="color:#a7a7a7;" class="goods-info-text">{{'适应症:' + goods.indication}}</text>
+					</view>
+				</view>
+				<view class="goods-info-box">
+					<view>
+						<text style="font-weight: bold;font-size: 14px;">用法用量</text>
+					</view>
+					<view style="display: flex; ">
+						<text style="color:#a7a7a7;" class="goods-info-text">详见说明书</text>
+					</view>
+				</view>
+				
+			</view>
+			
+		</view>
+		
+		<view class="goods-detail-container" style="margin-top: 10px;">
+			<view class="line">
+				<view style="display:flex;justify-content:center;align-items:center;">
+					<text style="width: 50px;color: #909090;font-size: 15px;">库存</text>
+				</view>
+				<view style="padding-left: 12px;">
+					<text v-text="shop.inventory==null ? 0:shop.inventory" style="font-size: 15px;"></text>
+				</view>
+			</view>
+			
+			<view class="line" style="margin-bottom: 0px;width: 100%;">
+				<view style="display:flex;justify-content:center;align-items:center;">
+					<text style="width: 50px;color: #909090;font-size: 15px;">送至</text>
+				</view>
+				<view style="padding-left: 12px;width: 80%;" @click="showNextAddress" v-if="addressList">
+					<text style="font-size: 15px;"  v-text="addressList[currentIndex].city+addressList[currentIndex].details" ></text>
+				</view>
+				<view style="padding-left: 12px;width: 80%;" @click="toAddUserAddress" v-if="addressList==null">
+					<text style="font-size: 15px;">请添加收货地址</text>
+				</view>
+				<view style="width: 20%;justify-content: flex-end;display: flex;padding-right: 11px;">
+					<uni-icons type="forward" @click="toAddUserAddress"></uni-icons>
+				</view>
+			</view>
+			
+			<view class="line" style="margin: auto;">
+				<view style="display: flex;justify-content: center;">
+					<text style="width: 50px;padding-top:12px;color:#909090;font-size: 15px;">参数</text>
+				</view>
+				<view style="width: 100%;">
+					<uni-collapse ref="collapse" style="width: 100%;background: white;" >
+						<uni-collapse-item :title="'批 准 文 号：'+ goods.approvalNumber" style="background: white;padding:12px 0 12px 0" :open="true">
+							<view style="padding: 0 12px 12px 12px;">
+								<text decode="true" style="font-size: 14px;" v-text="'生 产 企 业：'+goods.manufacturer"></text>
+							</view>
+							<view style="padding: 0 12px 12px 12px;">
+								<text decode="true" style="font-size: 14px;" v-text="'规&ensp;&emsp;&ensp;&emsp;格：'+goods.specification"></text>
+							</view>
+							<view style="padding: 0 12px 12px 12px;">
+								<text decode="true" style="font-size: 14px;" v-text="'剂&ensp;&emsp;&ensp;&emsp;型：'+goods.form"></text>
+							</view>
+							<view style="padding: 0 12px 12px 12px;">
+								<text decode="true" style="font-size: 14px;" v-text="'单&ensp;&emsp;&ensp;&emsp;位：'+goods.sellUnit"></text>
+							</view>
+						</uni-collapse-item>
+					
+					</uni-collapse>
+				</view>
+			</view>
+		</view>
+		
+		<view class="shop-container" @click="toShop">
+			<view class="shop-image-box">
+				<image v-if="shop.shopImg!=null" :src="imgurl+shop.shopImg" class="shop-image"></image>
+				<image v-if="shop.shopImg==null" :src="defaultPic" class="shop-image"></image>
+			</view>
+			<view style="padding-left: 10px;">
+				<view>
+					<text v-text="shop.simplifyShopName" style="font-weight: bold;"></text>
+				</view>
+				<view>
+					<text v-text="shop.shopAddress" style="font-size: 13px;color: #8b8b8b;" class="goods-info-text"></text>
+				</view>
+				
+			</view>
+		</view>
+		
+		<view class="goods-detail-container2" style="margin-top: 10px;padding-bottom:60px;" ref="goodsDetail">
+			<view style="font-size: 16px;font-weight:bold">商品详情</view>
+			<view style="    padding: 5px;margin: 10px;background: #f4f4f4;line-height: 15px;">
+				<text style="color: #8f8f8f;font-size:13px">温馨提醒:图片为实物拍摄,可能出现新旧包装更换或者图片展示效期和图片效期不一致,包装不影响药物/商品质量,请以收到实物为准。</text>
+			</view>
+			<view v-for="(item,i) in goods.goodsImg" :key="i" class="goods-img-box" v-if="goods.goodsType!='处方药'">
+				<image mode="widthFix" class="goods-img" :src="imgurl+item.tplszh" @error="() => handleImageError(i)"></image>
+			</view>
+			<view  class="goods-img-box" v-if="goods.goodsType=='处方药'">
+				<image mode="widthFix" class="goods-img" :src="imgurl+goods.goodsImg[0].tplszh" @error="() => handleImageError(0)" :style="{filter : goods.goodsType!='处方药'?'blur(0)':'blur(10px);'}"></image>
+			</view>
+			<view style="font-size: 16px;font-weight:bold">退换货标准</view>
+			<view style="padding: 5px;">
+				
+				
+				<view class="text-box">
+					<view style="font-size: 15px;font-weight:bold">特殊说明</view>
+					<view style="color: #8f8f8f;">
+						<text>因药品是特殊商品，依据中华人民共和国《药品经营质量管理规范》及其实施细则(GSP)、《互联网药品交易服务审批暂行规定》等法律、法规的相关规定:药品一经售出，无质量问题，不退不换。</text>
+						<text></text>
+						<text></text>
+					</view>
+				</view>
+				
+			</view>
+		</view>
+		
+		
+		<!-- 商品购买 -->
+		<view class="goods-carts" v-if="goods.goodsType!='处方药' ">
+			<uni-goods-nav :options="options" :fill="true" :button-group="buttonGroup" @click="onClick"
+				@buttonClick="buttonClick" >
+			</uni-goods-nav> 
+	
+		</view>
+		<view class="goods-carts" v-if="goods.goodsType=='处方药' ">
+			<uni-goods-nav :fill="true" :options="options" :button-group="customButtonGroup1" @click="onClick"
+			@buttonClick="popupBuyGoods('问诊开方')"  >
+			</uni-goods-nav> 
+		</view>
+		
+		<uni-popup ref="popup" type="bottom"> 
+			<view style="background:white;max-height: 75vh;;border-radius: 20px 20px 0 0;">
+				<view style="    display: flex;justify-content: flex-end;padding-right: 10px;">
+					<uni-icons type="closeempty" size="18" @click="closePopupBuyGoods('null')"></uni-icons>
+				</view>
+				<!-- 订购弹窗组件 -->
+				<orderPopup  @closePopupBuyGoods=closePopupBuyGoods :goods="goods" :shop="shop" :orderType="orderType"></orderPopup>
+			</view>
+			
+		</uni-popup>
+		
+	</view>
+</template>
+
+<script>
+	import goodsCard from '@/components/goods/goods_card.vue';
+	import request from '@/common/api/request.js'
+	import orderPopup from '@/components/order/order_popup.vue'
+	export default {
+		components:{goodsCard,orderPopup},
+		data() {
+			return {
+				addressList:[],
+				goods:{},
+				shop:{},
+				choiceBar:'test1',
+				imgurl: "http://images.yndzyf.com/getimage.ashx?mlszh=",
+				defaultPic: '/static/icon/shop.svg',
+				errorImage: '/static/icon/errorImg.svg',
+				orderType:'', //订购类型 ： 加入购物车/直接购买
+				indication:'',//适应症,
+				UsageAndDosage:'',//用法及用量
+				currentIndex: 0,
+				options: [{
+						icon: 'shop',
+						text: '店铺',
+						info: 0,
+						infoBackgroundColor: '#007aff',
+						infoColor: "#f5f5f5"
+					}, {
+						icon: 'cart',
+						text: '购物车',
+						info: 0
+					}],
+				buttonGroup: [{
+						text: '加入购物车',
+						backgroundColor: 'linear-gradient(90deg, #FFCD1E, #FF8A18)',
+						color: '#fff'
+					},
+					{
+						text: '立即购买',
+						backgroundColor: 'linear-gradient(90deg, #FE6035, #EF1224)',
+						color: '#fff'
+					}
+				],
+				customButtonGroup1: [{
+					text: '问诊开方',
+					backgroundColor: 'linear-gradient(90deg, #FE6035, #EF1224)',
+					color: '#fff'
+				}]
+				
+			}
+		},
+		onLoad: function (option) {
+			//解析传过来的对象
+			this.goods = JSON.parse(decodeURIComponent(option.goods));
+			this.shop = JSON.parse(decodeURIComponent(option.shop));
+			console.log(this.goods)
+			console.log(this.shop)
+			
+		},
+		onShow() {
+			this.getAddressList()
+		},
+		methods: {
+			toAddUserAddress(){
+				uni.navigateTo({
+					url:'/pages/user-add-path/addPath'
+				})
+			},
+			showNextAddress() {
+			      this.currentIndex = (this.currentIndex + 1) % this.addressList.length;
+			    },
+			toShop(){
+				uni.navigateTo({
+					url:'/pages/shop_certificate/shop_certificate?shopName='+encodeURIComponent(JSON.stringify(this.shop.shopName))+'&shopId='+encodeURIComponent(JSON.stringify(this.shop.shopId))
+				})
+			},
+			//获取用户的地址信息
+			async getAddressList() {
+				const url = '/api/user/getAddressList';
+				const method = 'POST';
+				const data = {
+					openid: uni.getStorageSync("openid")
+				};
+				try {
+					const response = await request('yzy_app', url, method, data);
+					console.log(response); //统一格式：{"data":{}, "flag":99, "result":"成功"}
+					if (response.code == 99) {
+						this.addressList = response.data.data;
+						console.log(this.list);
+					} else {
+						console.log("-99" + response.result);
+					}
+				} catch (error) {
+					console.log(error);
+				}
+			},
+			// 前往问诊开方页
+			toPrescription(){
+				
+				uni.navigateTo({
+					url: '/pages/prescription/prescription'
+				})
+			},
+			popupBuyGoods(type){
+				if(!uni.getStorageSync("phone")){
+					this.toAuthorizePhone()
+					return
+				}
+				uni.requestSubscribeMessage({
+					//此处填写申请模板的模板ID
+				  	tmplIds: ['K9QtB4z2B8YIyUScP1Bx5iROO-IOZqd3Opi7KjySbKc','JZGbfSSv0-jB5yS4GObkqD0TUrPqDdAbalAcz70xjZg'],
+				  	success (res) {
+				  		console.log(res)
+				  	},
+					
+				})
+				this.orderType=type
+				this.$refs.popup.open()
+			},
+			closePopupBuyGoods(result){
+				console.log(result)
+				var num = result.num
+				if(result=='null'){
+					this.$refs.popup.close()
+				}
+				else if(result.type=='加入购物车'){
+					this.addToShoppingCart(result.num)
+					this.$refs.popup.close()
+				}
+				else if(result.type=='立即购买'){
+					//async await 返回的是promise对象
+					this.addToShoppingCart(num).then(shoppingCartId => {
+					    
+						//请编写跳转购买页面的方法
+						const result = [
+							{"id":0, //门店id
+							"shopName":this.shop.shopName,
+							"shopId":this.shop.shopId,
+							"simplifyShopName": this.shop.simplifyShopName,
+							"drugs":[
+									{"id":shoppingCartId,
+									"drugId":this.goods.goodsId,
+									"drugName":this.goods.genericName,
+									"specification":this.goods.specification,
+									"price":this.shop.price,
+									"num": num,
+									"imgLszh":this.goods.goodsImg[0].tplszh
+									},
+								],
+							},
+						]
+						uni.navigateTo({
+							url: `/pages/confirm_order/confirm_order?drug=${encodeURIComponent(JSON.stringify(result))}`,
+						})
+					    
+					}).catch(error => {
+					    console.error('Error:', error);
+					});
+
+					
+				}
+				else{
+					//不是普通关闭的话说明提交了购买请求或者加入购物车请求
+					this.$refs.popup.close()
+				}
+			},
+			async addToShoppingCart(num){
+				//添加到购物车
+				const url = '/api/trade/addGoodsToShoppingCart';
+				const method = 'POST'; 
+				const data = {
+					openid: uni.getStorageSync("openid"),
+					shopId : this.shop.shopId,
+					goodsId : this.goods.goodsId,
+					num : num,
+				};
+				try {
+					const response = await request('yzy_app', url, method, data);
+					console.log(response);		//统一格式：{"data":{}, "flag":99, "result":"成功"}
+					if(response.code == 99){
+						this.options[1].info = response.data.totalNum
+						return response.data.shoppingCartId
+					}
+					else {
+						uni.showToast({
+							icon: 'none',
+							title: '添加失败'+response.data.sm
+						})
+					}
+				} catch (error) {
+					console.log(error);
+					uni.showToast({
+						icon: 'none',
+						title: '服务器出错了'
+					})
+				}
+			},
+			onClick(e) {
+				// uni.showToast({
+				// 	title: `点击${e.content.text}`,
+				// 	icon: 'none'
+				// })
+				
+				if(e.content.text=='购物车'){
+					console.log(e.content.text)
+					uni.reLaunch({
+						url:'/pages/shopping_cart/shopping_cart'
+					})				
+				}else{
+					this.toShop()
+				}
+			},
+			toAuthorizePhone() {
+				uni.navigateTo({
+					url: '/pages/login/login'
+					
+				})
+			},
+			buttonClick(e) {
+				if(!uni.getStorageSync("phone")){
+					this.toAuthorizePhone()
+					return
+				}
+				
+				console.log(e)
+				uni.requestSubscribeMessage({
+					//此处填写申请模板的模板ID
+				  	tmplIds: ['NaEQhsqAO72iO_ruYzrhHIZigJQO8davB0gST5-xtIk','K9QtB4z2B8YIyUScP1Bx5uEk1tudwnuVUXA6SZM3H0E','JZGbfSSv0-jB5yS4GObkqD0TUrPqDdAbalAcz70xjZg'],
+				  	success (res) {
+				  		console.log(res)
+				  	},
+					
+				})
+				if(e.index==0){
+					// 加入购物车					
+					this.popupBuyGoods('加入购物车')
+					//订阅消息
+					
+				}else if(e.index==1){
+					this.popupBuyGoods('立即购买')
+				}
+			},
+			selectBar(val){
+				this.choiceBar = val
+				if(val=='test2'){
+					this.scrollToTarget('2')
+				}else{
+					this.scrollToTarget('1')
+				}
+			},
+			toNewSearch(){
+				uni.navigateTo({
+					url: "/pages/search/search"
+				})
+			},
+			handleImageError(index) {
+			  // 图片加载失败时，将图片路径替换为对应的默认图片路径
+			  console.log("图片加载失败")
+			  this.goods.goodsImg[index].tplszh = this.errorImage;
+			},
+			scrollToTarget(to) {
+				//pageScrollTo 方法滚动到目标元素的位置
+				if(to=='2'){
+					uni.pageScrollTo({
+						selector: ".goods-detail-container2", // 将目标元素的选择器传递给 selector 属性
+						duration: 300, // 滚动动画的时长，单位为 ms
+					});
+				}else{
+					uni.pageScrollTo({
+						selector: ".content", // 将目标元素的选择器传递给 selector 属性
+						duration: 300, // 滚动动画的时长，单位为 ms
+					});
+				}
+				
+			},
+		}
+	}
+</script>
+
+<style lang="scss">
+page{
+	background: #f5f5f5;
+}
+.goods-img-box{
+	 padding: 4vw;
+	 display: flex;
+	 justify-content: center;
+}
+.goods-img{
+	width: 85vw;
+	height: 85vw;
+}
+.text-box{
+	text{
+		font-size: 14px;
+	}
+}
+.goods-carts {
+	/* #ifndef APP-NVUE */
+	display: flex;
+	/* #endif */
+	flex-direction: column;
+	position: fixed;
+	left: 0;
+	right: 0;
+	/* #ifdef H5 */
+	left: var(--window-left);
+	right: var(--window-right);
+	/* #endif */
+	bottom: 0;
+}
+.goods-info-text{
+	margin: auto;
+	font-size: 13px;
+	overflow: hidden;
+	word-break: break-all; /* break-all(允许在单词内换行。) */
+	text-overflow: ellipsis; /* 超出部分省略号 */
+	display: -webkit-box; /** 对象作为伸缩盒子模型显示 **/
+	-webkit-box-orient: vertical; /** 设置或检索伸缩盒对象的子元素的排列方式 **/
+	-webkit-line-clamp: 2; /** 显示的行数 **/
+	line-height: 20px;
+}
+.shop-image{
+	width: 64px;
+	height: 64px;
+	display: block;
+	border-radius: 10%;
+}
+.shop-container{
+	display: flex;
+	margin-top: 10px;
+	padding-bottom: 120px;
+	padding: 2vw;
+	width: 96vw;
+    min-height: 50px;
+	background: #ffffff;
+}	
+.content{
+	min-height: 120vh;
+	margin-bottom: 40px;
+}	
+.line{
+	display: flex;
+	margin: 10px 0;
+}	
+.goods-info{
+	margin-top: 15px;
+	background: #f5f5f5;
+	max-height: 100px;
+	border-radius: 15px;
+	display: flex;
+	.goods-info-box{
+		text-align: center;
+		padding: 10px;
+		width: 50%;
+
+	}
+}	
+.goods-name-container{
+	 display: flex;
+	 justify-content: left;
+}	
+.goods-name{
+	font-size: 18px;
+	font-family: monospace;
+	font-weight: bold;
+	max-width: 80vw;
+	line-height: normal;
+}	
+.goods-tag-box{
+	display: inline-grid;
+    height: auto;
+    padding: rpx 0;
+	align-items: center;
+	text-align: center;
+	
+	.space {
+		color: #ffffff;
+		}
+	
+}
+.goods-tag{
+	    text-align: center;
+	    align-items: left;
+	    padding: 5rpx 5px 5rpx 5px;
+	    font-size: 24rpx;
+	    width: auto;
+	    color: #ffffff;
+	    border-radius: 5px;
+	    line-height: 1;
+}	
+.goods-bq{
+			    border: 1px solid #ec7063;  
+			text-align: center;
+            align-items:left;
+            padding: 5rpx 5px 5rpx 5px;
+            font-size: 24rpx;
+            width: auto;
+            color: #ffffff;
+            border-radius: 5px;
+            line-height: 1;          
+          }
+.goods-bq2{
+    border: 1px solid #68d568;
+text-align: center;
+  align-items:left;
+  padding: 5rpx 5px 5rpx 5px;
+  font-size: 24rpx;
+  width: auto;
+  color: #ffffff;
+  border-radius: 5px;
+  line-height: 1;          
+}  
+.goods-price {
+	color: #bc1903;
+	font-size: 18px;
+	font-family: fantasy;
+	padding: 5px 0;
+
+}	
+.goods-detail-container{
+	background: #ffffff;
+	padding: 2vw;
+	border-radius: 15px;
+	width: 96vw;
+}	
+.goods-detail-container2{
+	background: #ffffff;
+	padding: 2vw;
+	border-radius: 15px;
+	width: 96vw;
+}	
+.goods-img-container{
+	margin-top: 80px;
+}
+.swiper{
+	height: 40vh;
+}	
+.choice-bar-container{
+	 width: 100%;
+	 background: #1296DB;
+	display: flex;
+	overflow : auto;
+	background: white;
+}
+.choice-bar-item-box {
+	height: 100%;
+	width: 50%;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	padding: 5px 0;
+} 	
+
+ .search-container{
+ 	 background: #ffffff;
+ 	width: 98vw;
+ 	display: flex;
+ 	padding: 1vw;
+ 	 justify-content: center;
+ 	 background: #1296DB;
+  } 
+/* search input */
+.search-input {
+	  display: flex;
+	  align-items: center;
+	  justify-content: center;
+	  background: #ffffff;
+	  /* border: 1px solid #0045cf; */
+	  border-radius: 24px;
+		padding: 2px 2px 2px 2vw;
+	    width: 93vw;
+	  height: 30px;	
+	}
+	.search-text {
+	  flex: 1;
+	  border: none;
+	  outline: none;
+	  font-size: 4vw;
+	  color: #1a1a1a;
+	}
+</style>

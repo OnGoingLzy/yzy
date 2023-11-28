@@ -1,0 +1,297 @@
+<template>
+<view>	
+	<view style="	 position: absolute; top: 0;width: 100%;">
+		<view class="search-container">
+			<view class="search-input" @click="toNewSearch()">
+			  <input type="text" class="search-text"  disabled="true" placeholder="药名、品牌、厂家、症状"/>
+			  <view style="height: 100%;width: 40px;text-align: center;" >
+				  <text class="voice-icon" style="    line-height: 30px;">×</text>
+			  </view>
+			  <view>
+			  <button  @tap="toNewSearch()" style="height: 30px; max-width: 20vw; border-radius: 30px; background-color: #409EFF; color: #fff; font-size: 14px;display: flex;justify-content: center;">
+			    <text style="line-height: 30px;">搜索</text>
+			  </button>
+			  </view>
+			  
+			</view>
+		</view>
+		
+	</view>
+	<view class="sort-view">
+		<!-- 左边 -->
+		<view >
+			<scroll-view  scroll-y="true" class="sort-left" style="height: 90vh;" :scroll-into-view="'scroll'+leftScrollTop" scroll-with-animation="500">
+				<view v-for="(item,index) in firstData" :key="index" :id="'scroll'+index">
+				
+					<view class="sort-first" :class="{activesort : item.id == choiceFirst}" @click="sortFun(index,item.id)">
+						<!-- <image :src="icon[index%8]" class="icon-class"></image> -->
+						<text v-text="item.categoryName" style="text-align: center;"></text>
+					</view>
+					
+				</view>
+			</scroll-view>	
+		</view>
+		<!-- 右边 -->
+		<view class="sort-right"> 
+			<view style="display: flex;width: 100%;justify-content: center;">
+				<view class="first-category-box">
+					<text v-text="categoryTitle"></text>
+				</view>
+			</view>
+			<block v-for="(item,index) in secondData" :key="index">
+				<view class="sort-name sort-title">{{item.categoryName}}</view>
+				<view class="sort-flex">
+					<block v-for="(sonItem,indexs) in item.sonCategory" :key="indexs">
+						<view class="sort-goods" @click="toSearch(sonItem.id.toString())">
+							<!-- <image :src="testImg[indexs%4]" mode="aspectFit" style="width: 100%;"></image> -->
+							<image :src="sonItem.categoryImg==null?defaultImg:'http://images.yndzyf.com/getimage.ashx?mlszh='+sonItem.categoryImg" mode="aspectFit"></image>
+							<text>{{sonItem.categoryName}}</text>
+						</view>
+					</block>
+				</view>
+			</block>
+		</view>
+	</view>
+</view>
+</template>
+
+<script>
+	import request from '@/common/api/request.js'
+export default{
+	data() {
+		return {
+			leftScrollTop:100,
+			choiceFirst:0, //选择了哪个一级分类
+			firstData:[],
+			secondData:[],
+			defaultImg:'/static/icon/shop.svg',
+			categoryTitle:'',
+			icon:[
+				'../../static/icon/categoryIcon/药品.svg',
+				'../../static/icon/categoryIcon/药品1.svg',
+				'../../static/icon/categoryIcon/药品2.svg',
+				'../../static/icon/categoryIcon/药品3.svg',
+				'../../static/icon/categoryIcon/药品4.svg',
+				'../../static/icon/categoryIcon/药品5.svg',
+				'../../static/icon/categoryIcon/药品6.svg',
+				'../../static/icon/categoryIcon/药品7.svg',
+				// 添加更多图片文件名
+			],
+			testImg:[
+				'http://images.yndzyf.com/getimage.ashx?mlszh=21088499',
+				'http://images.yndzyf.com/getimage.ashx?mlszh=21088552',
+				'http://images.yndzyf.com/getimage.ashx?mlszh=21088543',
+				'http://images.yndzyf.com/getimage.ashx?mlszh=21088549',
+			]
+			
+		}
+	},
+	onLoad: function (option) {
+		//解析传过来的对象
+		if(option && option.id){
+			this.choiceFirst = JSON.parse(decodeURIComponent(option.id));
+			this.getGoodsCategory(0)
+			this.getGoodsCategory(this.choiceFirst)
+		}
+		if(option.scrollTop){
+			setTimeout(() => {
+			      this.leftScrollTop = option.scrollTop
+				  
+			    }, 500); // 延迟一秒执行
+		}
+
+		
+	},
+	mounted() {
+		
+	},
+	methods:{
+		setIcon(index) {
+			const icons = [
+				'../../static/icon/categoryIcon/药品.svg',
+				'../../static/icon/categoryIcon/药品1.svg',
+				'../../static/icon/categoryIcon/药品2.svg',
+				'../../static/icon/categoryIcon/药品3.svg',
+				'../../static/icon/categoryIcon/药品4.svg',
+				'../../static/icon/categoryIcon/药品5.svg',
+				'../../static/icon/categoryIcon/药品6.svg',
+				'../../static/icon/categoryIcon/药品7.svg',
+				// 添加更多图片文件名
+			];
+			index = (index+Math.floor(Math.random() * (8 - 0)) + 0)%8 
+			const randomIcon = icons[index];
+			return randomIcon
+		},
+		// 选中
+		sortFun(index,parentId){
+			this.choiceFirst = parentId
+			this.getGoodsCategory(parentId)
+		},
+		async getGoodsCategory(parentId){
+			const url = '/api/goods/getGoodsCategory';
+			const method = 'POST'; 
+			const data = {
+				parentId: parentId,
+			};
+			try {
+				const response = await request('yzy_app', url, method, data);
+						//统一格式：{"data":{}, "flag":99, "result":"成功"}
+				if(response.code == 99){
+					if(parentId==0){//父id为0则查一级类目
+						this.firstData= response.data.data
+						this.firstData.sort((a, b) => b.weight - a.weight);
+						if(this.choiceFirst==0) { //进入分类默认选择第一个分类并且查它的子类
+							this.choiceFirst = this.firstData[0].id	
+
+							this.getGoodsCategory(this.firstData[0])
+						}
+					}else {//否则就是查二级类目
+						this.secondData = response.data.data
+						this.secondData.sort((a, b) => b.weight - a.weight);
+						//获取父分类名
+						const targetObject = this.firstData.find(item => item.id === this.choiceFirst);
+						this.categoryTitle = targetObject.categoryName
+						console.log(this.categoryTitle)
+					}
+				}
+				else {
+				}
+			} catch (error) {
+				console.log(error);
+			}
+		},
+		toSearch(searchContent){
+			uni.navigateTo({
+				url:"/pages/search/search?searchContent="+encodeURIComponent(JSON.stringify(searchContent))
+				
+				//传对象参数给这个页面需要使用这个方法
+			})
+		},
+		toNewSearch(){
+			uni.navigateTo({
+				url: '/pages/search/search'
+			})
+		},
+	},
+	created() {
+	
+	}
+}
+</script>
+
+<style scoped>
+	.sort-first{
+		height: 45px;
+		font-weight: bold;
+	}
+	.first-category-box{
+		 display: flex;
+		 margin: 15px;
+		 width: 100%;
+		 height: 50px;
+		 border-radius: 15px;
+		 font-size: 18px;
+		 font-weight: bold;
+		 background: #74ebd5;  /* fallback for old browsers */
+		 background: -webkit-linear-gradient(to right, #ACB6E5, #74ebd5);  /* Chrome 10-25, Safari 5.1-6 */
+		 background: linear-gradient(to right, #ACB6E5, #74ebd5); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+		 align-items: center;
+		 justify-content: center;
+	
+	}
+	.search-container{
+		 background: #ffffff;
+		position: fixed;
+		width: 98vw;
+			display: flex;
+			padding: 1vw;
+		 justify-content: center;
+		 background: #1296DB;
+	 } 
+	/* search input */
+	.search-input {
+	  display: flex;
+	  align-items: center;
+	  justify-content: center;
+	  background: #ffffff;
+	  /* border: 1px solid #0045cf; */
+	  border-radius: 24px;
+	  padding: 2px 2px 2px 2vw;
+	    width: 93vw;
+	  height: 30px;	
+	}
+	.search-text {
+	  flex: 1;
+	  border: none;
+	  outline: none;
+	  font-size: 4vw;
+	  color: #1a1a1a;
+	}
+	.sort-first {
+		// position: relative;
+		/* #ifndef APP-NVUE */
+		display: flex;
+		/* #endif */
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		padding: 5px 0;
+		border-radius: 10px 0 0 10px;
+		
+	} 
+	.icon-class{
+		height: 10vw;
+		width: 10vw;
+	}
+	.sort-view{
+		display: flex;
+		
+	}
+	.sort-left{
+		width: 150rpx;
+		background: #f8f8f8;
+		/* height: 90vh; */
+		/* overflow-y: auto; */
+		position: fixed;
+		left: 0;
+		bottom: 0;
+		top: 50px;
+		padding-bottom: 100px;
+	}
+	.sort-right{flex: 1; margin-left: 150upx;margin-top: 50px;}
+	.sort-name{
+		height: 80upx;
+		line-height: 80upx;
+		font-size: 28upx;
+		text-align: center;
+	}
+	.activesort{
+		background: #FFFFFF;
+		border-left: 4px #1296DB solid;
+		color: #1296DB;
+	}
+	/* right */
+	.sort-title{text-align: left !important;
+	padding-left: 40upx;
+	font-weight: bold;
+	}
+	.sort-flex{display: flex; flex-wrap: wrap; align-items: center;
+	}
+	.sort-flex image{
+		width: 80upx; height: 100upx; display: block;}
+	.sort-goods text{
+		padding-top: 10upx;    max-width: 70%;
+		text-overflow: ellipsis;
+		overflow: hidden;
+		white-space: nowrap;}
+	.sort-goods{
+		text-overflow: ellipsis;overflow: hidden;white-space: nowrap;	
+		font-size: 28upx;
+		width: 33.333%;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		padding-bottom: 40upx;
+	}
+</style>
+

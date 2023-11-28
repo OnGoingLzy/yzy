@@ -1,0 +1,7 @@
+{
+  "defaultTitle": "历史预订",
+  "pullRefresh": false,
+  "usingComponents": {
+    "history-list": "/components/goods_order/history_list/history_list"
+  }
+}

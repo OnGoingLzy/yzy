@@ -1,0 +1,334 @@
+{
+	"pages": [ //pages数组中第一项表示应用启动页，参考：https://uniapp.dcloud.io/collocation/pages
+		{
+			"path": "pages/index/index",
+			"style": {
+				"navigationBarTitleText": "云找药",
+				"app-plus": {
+					"scrollIndicator": "none",
+					"titleNView": {
+						"buttons": [{
+								"float": "left",
+								"fontSrc": "./static/iconfont.ttf",
+								"text": "\ue69d"
+							},
+							{
+								"float": "right",
+								"fontSrc": "./static/iconfont.ttf",
+								"text": "\ue622"
+							}
+						]
+					}
+				}
+			}
+		}, {
+			"path": "pages/shopcart/shopcart",
+			"style": {
+				"app-plus": {
+					"titleNView": false,
+					"scrollIndicator": "none"
+				}
+			}
+		}, {
+			"path": "pages/user/user",
+			"style": {
+				"app-plus": {
+					"titleNView": false,
+					"scrollIndicator": "none"
+				}
+			}
+		}, {
+			"path": "pages/search/search",
+			"style": {
+				"app-plus": {
+					"scrollIndicator": "none",
+					"titleNView": {
+						"searchInput": {
+							"placeholder": "nike",
+							"disabled": false,
+							"align": "left",
+							"autoFocus": true,
+							"borderRadius": "15px",
+							"backgroundColor": "#F7F7F7",
+							"placeholderColor": "#B3B3B3"
+						},
+						"buttons": [{
+							"float": "right",
+							"color": "#636263",
+							"text": "搜索",
+							"fontSize": "16px",
+							"width": "60px"
+						}]
+					}
+				}
+			}
+		}, {
+			"path": "pages/search_list/search_list",
+			"style": {
+				"app-plus": {
+					"scrollIndicator": "none",
+					"titleNView": {
+						"searchInput": {
+							"placeholder": "nike",
+							"disabled": true,
+							"align": "left",
+							"borderRadius": "15px",
+							"backgroundColor": "#F7F7F7",
+							"placeholderColor": "#B3B3B3"
+						},
+						"buttons": [{
+							"float": "right",
+							"color": "#636263",
+							"text": "筛选",
+							"fontSize": "16px",
+							"width": "60px"
+						}]
+					}
+				}
+			}
+		}, {
+			"path": "pages/drug_details/drug_details",
+			"style": {
+				"navigationBarTitleText": "药品详情",
+				"app-plus": {
+					"scrollIndicator": "none",
+					"titleNView": {
+						"type": "transparent",
+						"buttons": [{
+								"type": "menu"
+							},
+							{
+								"type": "share"
+							}
+						]
+					}
+				}
+			}
+		}, {
+			"path": "pages/user_config/user_config",
+			"style": {
+				"navigationBarBackgroundColor": "#FFFFFF",
+				"navigationBarTitleText": "设置"
+			}
+		}, {
+			"path": "pages/user_path_list/user_path_list",
+			"style": {
+				"navigationBarBackgroundColor": "#FFFFFF",
+				"navigationBarTitleText": "地址管理"
+			}
+		}, {
+			"path": "pages/user_add_path/user_add_path",
+			"style": {
+				"navigationBarBackgroundColor": "#FFFFFF",
+				"navigationBarTitleText": "新增地址",
+				"app-plus": {
+					"scrollIndicator": "none",
+					"titleNView": {
+						"buttons": [{
+							"float": "right",
+							"color": "#636263",
+							"text": "保存",
+							"fontSize": "16px",
+							"width": "60px"
+						}]
+					}
+				}
+			}
+		}, {
+			"path": "pages/user_order/user_order",
+			"style": {
+				"navigationBarTitleText": "我的订单"
+
+			}
+		}, {
+			"path": "pages/payment/payment",
+			"style": {
+				"app-plus": {
+					"titleNView": false,
+					"scrollIndicator": "none"
+				}
+			}
+		}, {
+			"path": "pages/payment_success/payment_success",
+			"style": {
+				"navigationBarTitleText": "支付成功",
+				"navigationBarBackgroundColor": "#FFFFFF"
+			}
+		}, {
+			"path": "pages/login/login",
+			"style": {
+				"app-plus": {
+					"titleNView": false,
+					"scrollIndicator": "none"
+				}
+			}
+		}, {
+			"path": "pages/authenticate/authenticate",
+			"style": {
+				"navigationBarTitleText": "",
+				"enablePullDownRefresh": false
+			}
+
+		}, {
+			"path": "pages/category/category",
+			"style": {
+				"navigationBarTitleText": "商品分类",
+				"enablePullDownRefresh": false
+			}
+
+		}, {
+			"path": "pages/shops_selling_This_goods/shops_selling_This_goods",
+			"style": {
+				"navigationBarTitleText": "",
+				"enablePullDownRefresh": false
+			}
+
+		}, {
+			"path": "pages/goods_details/goods_details",
+			"style": {
+				"navigationBarTitleText": "",
+				"enablePullDownRefresh": false
+			}
+
+		}, {
+			"path": "pages/goods_user/goods_user",
+			"style": {
+				"navigationBarTitleText": "",
+				"enablePullDownRefresh": false
+			}
+
+		}, {
+			"path": "pages/category/category_page",
+			"style": {
+				"navigationBarTitleText": "",
+				"enablePullDownRefresh": false
+			}
+
+		},
+		{
+			"path": "pages/user-path-list/pathList",
+			"style": {
+				"navigationBarBackgroundColor": "#1296DB",
+				"navigationBarTitleText": "收货地址",
+				"navigationBarTextStyle": "white"
+			}
+
+		}, {
+			"path": "pages/user-add-path/addPath",
+			"style": {
+				"navigationBarBackgroundColor": "#1296DB",
+				"navigationBarTextStyle": "white",
+				"navigationBarTitleText": "新增地址",
+				"app-plus": {
+					//由于微信开发者工具中没有显示导航栏，这个按钮在界面中实现了（要使用导航栏保存需要改页面生命周期）
+					"scrollIndicator": "none",
+					"titleNView": {
+						"buttons": [{
+							"float": "right",
+							"color": "#fff",
+							"text": "保存",
+							"fontSize": "16px",
+							"width": "60px"
+						}]
+					}
+				}
+			}
+
+		},
+		{
+			"path": "pages/shopping_cart/shopping_cart",
+			"style": {
+				"navigationBarTitleText": "购物车",
+				"app-plus": {
+					"scrollIndicator": "none"
+				}
+			}
+		}, {
+			"path": "pages/agreement_order/agreement_order",
+			"style": {
+				"navigationBarTitleText": "",
+				"enablePullDownRefresh": false
+			}
+		}, {
+			"path": "pages/confirm_order/confirm_order",
+			"style": {
+				"navigationBarTitleText": "提交订单",
+				"navigationBarBackgroundColor": "#FFFFFF"
+			}
+		},
+		{
+			"path": "pages/consultation/consultation",
+			"style": {
+				"navigationBarTitleText": "问诊开方",
+				"app-plus": {
+					"scrollIndicator": "none",
+					"titleNView": {
+						"buttons": [{
+								"float": "left",
+								"fontSrc": "./static/iconfont.ttf",
+								"text": "\ue69d"
+							},
+							{
+								"float": "right",
+								"fontSrc": "./static/iconfont.ttf",
+								"text": "\ue622"
+							}
+						]
+					}
+				}
+			}
+		}, {
+			"path": "pages/agreement/agreement",
+			"style": {
+				"navigationBarTitleText": "",
+				"enablePullDownRefresh": false
+			}
+
+		}, {
+			"path": "pages/outer_webview/outer_webview",
+			"style": {
+				"navigationBarTitleText": "问诊开方"
+
+			}
+		}
+
+		, {
+			"path": "pages/shop_certificate/shop_certificate",
+			"style": {
+				"navigationBarTitleText": "",
+				"enablePullDownRefresh": false
+			}
+
+		}
+	],
+	"globalStyle": {
+		"navigationBarTextStyle": "black",
+		"navigationBarTitleText": "云找药",
+		"navigationBarBackgroundColor": "#1296DB",
+		"backgroundColor": "#1296DB"
+	},
+	"tabBar": {
+		"selectedColor": "#1296DB",
+		"list": [{
+				"pagePath": "pages/index/index",
+				"text": "买药",
+				"iconPath": "static/tabbar/search.png"
+			},
+			{
+				"pagePath": "pages/category/category",
+				"text": "分类",
+				"iconPath": "static/tabbar/classify.png"
+			},
+			{
+				"pagePath": "pages/shopping_cart/shopping_cart",
+				"text": "购物车",
+				"iconPath": "static/tabbar/shoppingCart.png"
+			},
+			{
+				"pagePath": "pages/user/user",
+				"text": "我的",
+				"iconPath": "static/tabbar/list.png"
+			}
+		]
+	}
+}
