@@ -61,7 +61,7 @@
 							<view class="label">	
 							</view>
 							<view class="value" >
-								<text class="label-word" style="color: #ff4006;">医保移动支付</text>
+								<text class="label-word" style="color: #ff4006;">医保支付</text>
 							</view>
 						</view>
 						<view class="form-item">

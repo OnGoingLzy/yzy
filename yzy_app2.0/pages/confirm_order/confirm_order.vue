@@ -297,7 +297,7 @@
 				const url = '/api/user/getGoodsUser';
 				const method = 'POST';
 				const data = {
-					openid: uni.getStorageSync("user_id"),
+					openid: uni.getStorageSync("openid"),
 					phone: uni.getStorageSync("phone")
 				};
 				try {
@@ -1000,7 +1000,7 @@
 			if (allHaveYFlag) {
 				//是否可医保支付
 			    this.MedicarePaymentFlag = true
-				this.selectPayRange = [{"value": '微信支付', "text": "微信支付"},{"value": '微信医保支付', "text": "微信医保支付"}]
+				this.selectPayRange = [{"value": '微信支付', "text": "微信支付"},{"value": '微信医保支付', "text": "医保支付"}]
 			} else {
 			    this.MedicarePaymentFlag = false
 			}

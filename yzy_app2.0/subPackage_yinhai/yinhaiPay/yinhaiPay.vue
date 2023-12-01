@@ -45,8 +45,11 @@
 		  },
 		onShow(){
 			if(this.main_order_id){
-				//this.startPolling()
+				this.startPolling()
 			}  
+		},
+		onHide() {
+			this.stopPolling()
 		},
 		onLoad: function (option) {
 			
@@ -95,7 +98,7 @@
 			},
 			goToOrder(){
 				uni.redirectTo({
-					url: '/pages/user_order/user_order',
+					url: '/pages/user_order/user_order?num=test2',
 				})
 			},
 			async getInitParam(main_order_id,cash_url){
@@ -169,6 +172,7 @@
 						title:'加载失败!请重新下单!',
 						icon:'none'
 					})
+					uni.hideLoading()
 					setTimeout(function(){
 						uni.navigateBack()
 					},1000)
