@@ -13,6 +13,7 @@
 </template>
 
 <script>
+		import request from '@/common/api/request.js'
 	import historyList from "@/components/goods_order/history_list/history_list.vue"
 	export default {
 		components:{
@@ -48,8 +49,7 @@
 			//this.lxdh='15969538994';
 		},
 		methods: {
-
-			async gethistoryList() {
+			async gethistoryList(){
 				if (this.lxdh === undefined || this.lxdh === '') {
 					return;
 				}
@@ -61,34 +61,75 @@
 						title: '搜索中...'
 					})
 				}
-
-				uni.$http.beforeRequest = function(options) {
-					options.header = {
-						'X-Ca-Key': 'wxe7c826a1a5e00055',
-						'X-Service-Method': 'SearchHistory'
+				const data = this.reobj
+				
+				const url = '/api/user/SearchHistory';
+				const method = 'POST';
+				
+				try {
+					const res = await request('yzy_app', url, method, data);
+					console.log(res); //统一格式：{"data":{}, "flag":99, "result":"成功"}
+					this.isloading = false
+				
+				
+					if (res.data.result !== 99) return uni.$showMsg()
+					//能搜索到数据
+					if (res.data !== null) {
+						this.searchResults = [...this.searchResults, ...res.data.data] //下拉加载更多数据 与旧数据连接
+						this.reobj.spdm = res.data.data.spdm
+						this.total = res.data.totalCount
+						uni.hideLoading()
+				
+					} else {
+						return uni.$showMsg("暂无结果！")
 					}
+					
+				} catch (error) {
+					console.log(error);
+					return uni.$showMsg("服务器异常！")
 				}
-				const {
-					data: res
-				} = await uni.$http.post('/api/SearchHistory', this.reobj)
+			},
+		// 	async gethistoryList() {
+		// 		if (this.lxdh === undefined || this.lxdh === '') {
+		// 			return;
+		// 		}
+		// 		console.log('电话号码' + this.lxdh);
+		// 		if (this.time === 1) {
+		// 			console.log(this.time);
+		// 			this.time = this.time + 1
+		// 			uni.showLoading({
+		// 				title: '搜索中...'
+		// 			})
+		// 		}
 
-				console.log(res)
-				this.isloading = false
+		// 		uni.$http.beforeRequest = function(options) {
+		// 			options.header = {
+		// 				'X-Ca-Key': 'wxe7c826a1a5e00055',
+		// 				'X-Service-Method': 'SearchHistory'
+		// 			}
+		// 		}
+		// 		const {
+		// 			data: res
+		// 		} = await uni.$http.post('/user/SearchHistory', this.reobj)
+
+		// 		console.log(res)
+		// 		this.isloading = false
 
 
-				if (res.result !== 99) return uni.$showMsg()
-				//能搜索到数据
-				if (res.data !== null) {
-					this.searchResults = [...this.searchResults, ...res.data] //下拉加载更多数据 与旧数据连接
-					this.reobj.spdm = res.data.spdm
-					this.total = res.totalCount
+		// 		if (res.result !== 99) return uni.$showMsg()
+		// 		//能搜索到数据
+		// 		if (res.data !== null) {
+		// 			this.searchResults = [...this.searchResults, ...res.data] //下拉加载更多数据 与旧数据连接
+		// 			this.reobj.spdm = res.data.spdm
+		// 			this.total = res.totalCount
 
-				} else {
-					return uni.$showMsg("暂无结果！")
-				}
-			}
+		// 		} else {
+		// 			return uni.$showMsg("暂无结果！")
+		// 		}
+		// 	}
+		
 		},
-
+		
 		//到达页面底部 触发加载更多内容
 		onReachBottom() {
 			this.show = '正在加载中...'

@@ -43,7 +43,7 @@
 		 
 		<view class="show-container" style="width: 100%;min-height: 100px;margin-top: 170px;;">
 			<view v-for="(order,i) in filterOrderList" :key="i">
-				<order-card :order="order" @childMethod="getOrderList"></order-card>
+				<order-card :order="order" @childMethod="getOrderList" @userCancelOrder="userCancelOrder" ></order-card>
 			</view>
 			<view v-if="filterOrderList.length==0" style="    text-align: center;">
 				<image src="../../static/img/empty3.svg" style="width: 50vw;height: 50vw"></image>
@@ -70,14 +70,14 @@
 		onLoad: function (option) { //option为object类型，会序列化上个页面传递的参数
 			console.log(option.num); //打印出上个页面传递的参数。
 			this.choiceBar = option.num
-			this.getOrderList()
+			//this.getOrderList()
 		},
 		watch:{
 			
 		},
 		onShow() {
 			
-			
+			this.getOrderList()
 			
 		
 		},
@@ -90,6 +90,9 @@
 			this.getOrderList()
 		},
 		methods: {
+			userCancelOrder(){
+				this.getOrderList()
+			},
 			toPublicAccount(){
 				uni.navigateTo({
 					url:'/pages/public_account/public_account'
@@ -138,19 +141,20 @@
 				    totalNum += goods.num;
 				    totalPrice += goods.totalPrice;
 				  });
-				
+					//console.log('totalPrice'+totalPrice)
 				  order.totalNum = totalNum;
 				  order.totalPrice = totalPrice+order.shippingFee;
 				  let originalTotalPrice = order.totalPrice;
-				  
+				  // console.log('originalTotalPrice'+originalTotalPrice)
 				  // 将浮点数转换为字符串
 				  let priceString = originalTotalPrice.toString();
-				  
+				  // console.log('priceString'+priceString)
 				  // 使用正则表达式提取整数位和小数点后两位
 				  let match = priceString.match(/^-?\d+(?:\.\d{0,2})?/);
-				  
+				  // console.log('match'+match)
 				  // 提取的结果即为整数位和小数点后两位
 				  let truncatedPrice = match ? match[0] : "";
+				  
 				  order.totalPrice = truncatedPrice
 				});
 			},

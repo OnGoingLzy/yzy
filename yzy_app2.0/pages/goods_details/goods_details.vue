@@ -60,7 +60,7 @@
 		
 		<view class="goods-detail-container">
 			<view class="goods-price">
-				<text v-text="'¥'+shop.price"></text>
+				<text v-text="shop.price==0?'详询门店':'¥'+shop.price"></text>
 			</view>
 			<view class="goods-name-container">
 				<view class="goods-tag-box">
@@ -74,13 +74,40 @@
 					<text v-text="goods.manufacturer+' '"></text>
 				</view>
 			</view>
-			<view>
-				<text style="color: #bfbfbf;font-size: 14px;" v-if="goods.goodsType=='处方药' ">处方药需凭处方在药师指导下购买和使用</text>
-			</view>
-			<view style="margin-top: 10px;">
-				<view v-if="shop.healthInsuranceFlag=='y'" class="yb-tag">
-					<text>可线上医保</text>
+			<view style="display: flex;width: 100%;">
+				<view style="width: 90%;">
+					<view>
+						<text style="color: #00aaff;font-size: 14px;" v-if="goods.onlineShoppingFlag!=='y' ">小云提醒您：该品种禁止网络销售</text>
+					</view>
+					<view>
+						<text style="color: #bfbfbf;font-size: 14px;" v-if="goods.goodsType=='处方药' ">处方药需凭处方在药师指导下购买和使用</text>
+					</view>
 				</view>
+				<view style="width: 10%;height: 30px;position: relative;text-align: center;" >
+					
+					
+					<button open-type="share" plain="true" class="bt_contact" style="border: none;bottom: 0px;padding: 0;" @click="shareGoods()">
+						<view style="">
+							<view style="align-items: center;display: flex;justify-content: center;">
+								<image src="../../static/icon/分享.svg" style="width: 20px; height: 20px;"></image>
+							</view>
+
+							<view style="align-items: center;display: flex;justify-content: center;">
+								<text style="color: grey; ">分享</text>  
+							</view>
+						  
+						</view>
+
+							
+						
+					</button>
+				</view>
+			</view>
+			
+			<view style="margin-top: 10px;">
+				<!-- <view v-if="shop.healthInsuranceFlag=='y'" class="yb-tag">
+					<text>可线上医保</text>
+				</view> -->
 			</view>
 			<view  style="margin-top: 10px;background: #f5f5f5;border-radius: 15px;" v-if="goods.goodsType!='处方药' " @click="indicationShow=!indicationShow">
 				<view class="goods-info">
@@ -222,15 +249,20 @@
 			</view>
 		</view>
 		
-		
+		<view class="goods-carts" v-if="orderType=='提交需求'">
+			<uni-goods-nav :options="options" :fill="true" :button-group="customButtonGroup2" @click="onClick"
+				@buttonClick="popupBuyGoods('提交需求')" >
+			</uni-goods-nav> 
+			
+		</view>
 		<!-- 商品购买 -->
-		<view class="goods-carts" v-if="goods.goodsType!='处方药' ">
+		<view class="goods-carts" v-if="goods.goodsType!='处方药' && orderType!=='提交需求'">
 			<uni-goods-nav :options="options" :fill="true" :button-group="buttonGroup" @click="onClick"
 				@buttonClick="buttonClick" >
 			</uni-goods-nav> 
 	
 		</view>
-		<view class="goods-carts" v-if="goods.goodsType=='处方药' ">
+		<view class="goods-carts" v-if="goods.goodsType=='处方药' && orderType!=='提交需求'">
 			<uni-goods-nav :fill="true" :options="options" :button-group="customButtonGroup1" @click="onClick"
 			@buttonClick="popupBuyGoods('问诊开方')"  >
 			</uni-goods-nav> 
@@ -276,7 +308,7 @@
 				imgurl: "http://images.yndzyf.com/getimage.ashx?mlszh=",
 				defaultPic: 'http://images.yndzyf.com/getimage.ashx?mlszh=17700932',
 				errorImage: '/static/icon/errorImg.svg',
-				orderType:'', //订购类型 ： 加入购物车/直接购买
+				orderType:'', //订购类型 ： 加入购物车/直接购买/提交需求
 				indication:'',//适应症,
 				UsageAndDosage:'',//用法及用量
 				currentIndex: 0,
@@ -307,9 +339,28 @@
 					backgroundColor: 'linear-gradient(90deg, #FE6035, #EF1224)',
 					color: '#fff'
 				}],
+				customButtonGroup2: [{
+					text: '提交需求',
+					backgroundColor: 'linear-gradient(90deg, #12cbdb, #1296DB)',
+					color: '#fff'
+				}],
 				shoppingCart:[],
 				
 			}
+		},
+		onShareAppMessage(res) { //发送给朋友
+		    return {
+		        title: '有人拍了拍你,推荐了：'+this.goods.genericName,
+		        imageUrl: this.imgurl+this.goods.goodsImg[0].tplszh,
+				path:"/pages/goods_details/goods_details?goods="+encodeURIComponent(JSON.stringify(this.goods))+"&shop="+encodeURIComponent(JSON.stringify(this.shop))
+		    }
+		},
+		onShareTimeline(res) {//分享到朋友圈
+		    return {
+		        title: '有人拍了拍你,推荐了：'+this.goods.genericName,
+		        imageUrl: this.imgurl+this.goods.goodsImg[0].tplszh,
+				path:"/pages/goods_details/goods_details?goods="+encodeURIComponent(JSON.stringify(this.goods))+"&shop="+encodeURIComponent(JSON.stringify(this.shop))
+		    }
 		},
 		computed:{
 			theGoodsType(){
@@ -327,12 +378,39 @@
 			console.log("111111");
 			console.log(this.goods)
 			console.log(this.shop)
+			if(this.shop.flag!=='1' && this.shop.reservationFlag=='y'){
+				this.orderType = '提交需求'
+			}else if(this.shop.flag=='1'){
+				if(this.shop.reservationFlag=='y'&&this.shop.inventory==0){
+					this.orderType = '提交需求'
+				}
+			}else{
+				
+			}
 			this.getUserCartGoods()
 		},
 		onShow() {
 			this.getAddressList()
 		},
 		methods: {
+			copyPageLink() {
+			     uni.share({
+			         provider: "weixin",
+			         scene: "WXSceneSession",
+			         type: 1,
+			         summary: "我正在使用HBuilderX开发uni-app，赶紧跟我一起来体验！",
+			         success: function (res) {
+			             console.log("success:" + JSON.stringify(res));
+			         },
+			         fail: function (err) {
+			             console.log("fail:" + JSON.stringify(err));
+			         }
+			     });
+			    },
+			shareGoods(){
+				
+				console.log("share")
+			},
 			openPopup() {
 			  this.visible = true;
 			},
@@ -430,9 +508,19 @@
 					this.toAuthorizePhone()
 					return
 				}
+				if(type=='问诊开方'){
+					uni.requestSubscribeMessage({
+						//此处填写申请模板的模板ID
+					  	tmplIds: ['K9QtB4z2B8YIyUScP1Bx5iROO-IOZqd3Opi7KjySbKc'],
+					  	success (res) {
+					  		console.log(res)
+					  	},
+						
+					})
+				}
 				uni.requestSubscribeMessage({
 					//此处填写申请模板的模板ID
-				  	tmplIds: ['K9QtB4z2B8YIyUScP1Bx5iROO-IOZqd3Opi7KjySbKc','JZGbfSSv0-jB5yS4GObkqD0TUrPqDdAbalAcz70xjZg'],
+				  	tmplIds: ['JZGbfSSv0-jB5yS4GObkqD0TUrPqDdAbalAcz70xjZg'],
 				  	success (res) {
 				  		console.log(res)
 				  	},
@@ -445,6 +533,10 @@
 				console.log("弹出")
 			},
 			closePopupBuyGoods(result){
+				if(!uni.getStorageSync("phone")){
+					this.toAuthorizePhone()
+					return
+				}
 				console.log(result)
 				var num = result.num
 				if(result=='null'){
@@ -617,6 +709,13 @@
 </script>
 
 <style lang="scss">
+	.bt_contact{
+		position: absolute;
+		width: 100%;
+
+		border: 0;
+		
+	}
 	.yb-tag{
 		    max-width: 69px;
 		    line-height: 13px;

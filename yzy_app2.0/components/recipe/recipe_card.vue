@@ -109,6 +109,7 @@
 							"imgLszh":this.GoodsSettlementInfo.goodsImg,
 							"manufacturer": this.GoodsSettlementInfo.manufacturer,
 							"sellUnit": this.GoodsSettlementInfo.sellUnit,
+							"healthInsuranceFlag": this.GoodsSettlementInfo.healthInsuranceFlag,
 							},
 						],
 					},
@@ -133,6 +134,7 @@
 						if(response.data.flag==99){
 							//console.log(response.data.data[0])
 							this.GoodsSettlementInfo = response.data.data[0]
+							
 						}else{
 							
 						}

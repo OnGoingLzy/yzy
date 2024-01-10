@@ -30,7 +30,7 @@
 		},
 		components:{recipeCard},
 		onShow() {
-			
+			this.getRecipeList('');
 		},
 		onUnload() {
 		  // 在页面卸载时清除定时器

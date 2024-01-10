@@ -5,9 +5,9 @@ const appsecret = '2418ea23a370ed8547a8fa0cbfd9da8a';
 
 // 基础URLs
 const baseURLs = { 
-	//yzy_app: 'https://localhost:44363',
-	  yzy_app:'https://lyhapi.dyb.yn.cn'
-	//   yzy_app: 'https://yzy.dyb.yn.cn' 
+	yzy_app: 'https://localhost:44363',
+   //yzy_app:'https://lyhapi.dyb.yn.cn'
+	//yzy_app: 'https://yzy.dyb.yn.cn'  
 };
 
 // 创建签名

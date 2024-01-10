@@ -51,16 +51,12 @@
 						//如果该用户无地址信息
 						if (this.list === null) {
 							uni.showToast({
-								title: "无地址信息，3s后跳转地址维护界面",
+								title: "无地址信息，请前往地址维护界面添加收货地址",
 								duration: 3000,
 								icon: 'none',
 								mask: true
 							})
-							setTimeout(function() {
-								uni.navigateTo({
-									url: '/pages/user-path-list/pathList',
-								})
-							}, 3000);
+							
 						} else {
 							//取送货地址中的默认地址方法
 							let defaultList = this.list.filter(item => item.isDefault === 1);

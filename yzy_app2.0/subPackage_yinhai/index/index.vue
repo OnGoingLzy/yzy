@@ -3,6 +3,7 @@
 		久远银海
 		<button @click="testPublishMsg()">测试推送退款成功通知</button>
 		<button @click="testApi">测试查询订单接口</button>
+		<button @click="plcxddzt">测试批量查询订单接口</button>
 		<button @click="testApi2">测试查询退款订单接口</button>
 		<button @click="testQueryOrder">测试插件-查询订单</button>
 		<button @click="testCreateOrder" :disabled="!createOrderParam">测试插件-创建订单</button>
@@ -14,6 +15,7 @@
 
 <script>
 	import request from '@/common/api/request.js'
+		import requestZhyf from '@/common/api/requestZhyf.js'
 	const plugin = requirePlugin('yh-pay-plugin')
 	export default {
 		data() {
@@ -33,9 +35,9 @@
 				uni.login({
 				    success: (res) => {
 				        plugin.init({
-				            url: "https://zhuguangcao.mynatapp.cc/yy", // 服务器接口地址
+				            url: "https://ynyb.yinhaiyun.com/utsp-api", // 服务器接口地址
 				            dppSyscode: that.createOrderParam.dppSyscode, // 支付平台系统编号
-				            dsmpSyscode: '1002100022', // 银医平台系统编号
+				            dsmpSyscode: '1002100005', // 银医平台系统编号
 				            authCode: res.code ,// 用户登录凭证
 							chnlAppId: 'wxe7c826a1a5e00055',
 							acssToken: that.createOrderParam.acssToken
@@ -66,9 +68,9 @@
 						uni.login({
 						    success: (res) => {
 						       plugin.init({
-						           url: "https://zhuguangcao.mynatapp.cc/yy", // 服务器接口地址
+						           url: "https://ynyb.yinhaiyun.com/utsp-api", // 服务器接口地址
 						           dppSyscode: response.data.dppSyscode, // 支付平台系统编号
-						           dsmpSyscode: '1002100022', // 银医平台系统编号
+						           dsmpSyscode: '1002100005', // 银医平台系统编号
 						           authCode: res.code ,// 用户登录凭证
 						       	   chnlAppId: 'wxe7c826a1a5e00055',
 						       	acssToken: response.data.acssToken
@@ -104,12 +106,67 @@
 				const url = '/api/Trade/requestYinhaiQueryOrder';
 				const method = 'POST'; 
 				const data = {
-					main_order_id: '202325000778',
+					main_order_id: '202400001462',
 					type:"付款"
 				};
 				try {
 					const response = await request('yzy_app', url, method, data);		//统一格式：{"data":{}, "flag":99, "result":"成功"}
 					console.log(response)
+					if(response.data.status=='2'){
+							
+						console.log("支付成功")
+						if(response.data.operateId!=="0"){
+							this.uploadOrderToZhyf(response.msg, response.data.operateId);
+						}
+					}
+				} catch (error) {
+					console.log(error);
+				}
+			},
+			async testApi3(main_order_id){
+				const url = '/api/Trade/requestYinhaiQueryOrder';
+				const method = 'POST'; 
+				const data = {
+					main_order_id: main_order_id,
+					type:"付款"
+				};
+				try {
+					const response = await request('yzy_app', url, method, data);		//统一格式：{"data":{}, "flag":99, "result":"成功"}
+					console.log(response)
+					if(response.data.status=='2'){
+							
+						console.log("支付成功")
+						if(response.data.operateId!=="0"){
+							this.uploadOrderToZhyf(response.msg, response.data.operateId);
+						}
+					}
+				} catch (error) {
+					console.log(error);
+				}
+			},
+			//批量查询订单
+			plcxddzt(){
+				var orderId=["202450001417","202400001449","202450001407","202400001450","202450001411","202400001457","202450001416","202425001453","202475001453"]
+				for (var i = 0; i < orderId.length; i++) {
+				   this.testApi3(orderId[i])
+				}
+			},
+			async uploadOrderToZhyf(msg, operateId) {
+				const msgJson = JSON.parse(msg);
+				msgJson.operateId = operateId;
+				console.log(JSON.stringify(msgJson));
+				const url = '/api/Zhyf/makeAccountForOuterOrder';
+				const method = 'POST';
+				const data = JSON.stringify(msgJson);
+				try {
+					console.log(data);
+					const response = await requestZhyf('yzy_app', url, method, data);
+					console.log(response); //统一格式：{"data":{}, "flag":99, "result":"成功"}
+					if (response.code == 99) {
+						console.log("销售记录上传智慧药房成功！");
+					} else {
+			
+					}
 				} catch (error) {
 					console.log(error);
 				}
@@ -118,12 +175,15 @@
 				const url = '/api/Trade/requestYinhaiQueryRefundOrder';
 				const method = 'POST'; 
 				const data = {
-					main_order_id: '202350000637',
+					main_order_id: '202475001351',
 					type:"退款"
 				};
 				try {
 					const response = await request('yzy_app', url, method, data);		//统一格式：{"data":{}, "flag":99, "result":"成功"}
 					console.log(response)
+					if(response.code==99){
+						
+					}
 				} catch (error) {
 					console.log(error);
 				}

@@ -61,10 +61,10 @@
 						<view class="goods-price" v-if="(goods.minPrice==0 || goods.minPrice=='0.0000' )">
 							暂无定价
 						</view>
-						<view class="goods-price" v-else v-text="goods.minPrice?'￥'+goods.minPrice+'起':''"></view>
+						<view class="goods-price" v-else v-text="goods.minPrice?'￥'+goods.minPrice+'起':''" v-if="shop.price!==0"></view>
 					</view>
 					
-					<view class="goods-price" v-if="shop">￥{{shop.price}}</view>
+					<view class="goods-price" v-if="shop" v-text="shop.price==0?'详询门店':'￥'+shop.price">￥{{shop.price}}</view>
 					
 					<view v-if="!shop ">
 						<text style="color: #00aa00;font-weight: bold;">{{goods.shopNum}}</text>

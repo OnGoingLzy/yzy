@@ -15,7 +15,8 @@
 		<view style="display: flex;padding: 0px 5px;">
 			<view style="width: 60%;">
 				<text style="font-weight: bold;" decode="true">库存数量：</text>
-				<text style="color: #c7c7c7;font-size: 13px" v-text="shop.inventory==null ? 0:shop.inventory"></text>
+				<text style="color: #c7c7c7;font-size: 13px" v-text="shop.inventory==null ? 0:shop.inventory" v-if="!reservation"></text>
+				<text style="color: #c7c7c7;font-size: 13px" v-text="'可预订'" v-if="reservation"></text>
 				<text decode="true" style="color: #c7c7c7;font-size: 13px" v-text="shop.limitNum==0 ? '':'&ensp;|&ensp; 限购:'+shop.limitNum"></text>
 			</view>
 			
@@ -29,6 +30,7 @@
 				<text v-if="orderType=='加入购物车'">加入购物车</text> 
 				<text v-if="orderType=='立即购买'">立即购买</text>
 				<text v-if="orderType=='问诊开方'">问诊开方</text>
+				<text v-if="orderType=='提交需求'">提交需求</text>
 			</button>
 		</view>
 		<!-- 流程导航 -->
@@ -68,6 +70,7 @@
 				num:1,
 				localOrderType:'',
 				recipeId:'',
+				reservation:false
 			};
 		},
 		 watch: {
@@ -81,9 +84,15 @@
 		},
 		computed:{
 			maxBuyNum(){
+				if(this.shop.reservationFlag=='y'&& (this.shop.inventory==0  || this.shop.flag=='0')){
+					this.reservation = true
+					return 999
+				}
+				
 				if(this.shop.limitNum>0){
 					return this.shop.inventory<this.shop.limitNum ? this.shop.inventory:this.shop.limitNum
-				}else{
+				}
+				else{
 					return this.shop.inventory
 				}
 			}
@@ -146,6 +155,7 @@
 							"imgLszh":this.goods.goodsImg[0].tplszh,
 							"manufacturer": this.goods.manufacturer,
 							"sellUnit": this.goods.sellUnit,
+							"healthInsuranceFlag": this.shop.healthInsuranceFlag,
 							},
 						],
 					},
@@ -164,13 +174,41 @@
 					num:this.num,
 					type:this.localOrderType,
 				};
-				if(this.shop.price==null||this.shop.price==0){
+				if(this.orderType!=='提交需求'&&(this.shop.price==null||this.shop.price==0)){
 					uni.showToast({
 						icon:'error',
 						title:'暂无定价'
 					})
 					return	
 				}
+				if(this.orderType=='提交需求'){
+					var result = [
+						{"id":0, //门店id
+						"shopName":this.shop.shopName,
+						"shopId":this.shop.shopId,
+						"simplifyShopName": this.shop.simplifyShopName,
+						
+						"drugs":[
+								{"id":this.recipeId,
+								"drugId":this.goods.goodsId,
+								"drugName":this.goods.genericName,
+								"specification":this.goods.specification,
+								"price":this.shop.price,
+								"num": this.num,
+								"imgLszh":this.goods.goodsImg?this.goods.goodsImg[0].tplszh:null,
+								"manufacturer": this.goods.manufacturer,
+								"sellUnit": this.goods.sellUnit,
+								},
+							],
+						},
+					]
+					console.log(result)
+					uni.navigateTo({
+						url:"/subPackage_other/submit_requirements/submit_requirements?drug="+encodeURIComponent(JSON.stringify(result))
+					})
+					
+				}
+				
 				if(this.orderType=='问诊开方'){
 					
 					if(this.shop.inventory==null || this.shop.inventory==0) {
@@ -182,7 +220,7 @@
 					}
 					this.existsEffectiveRecipe()
 					
-				}else{
+				}else if(this.orderType=='立即购买'){
 					if(this.shop.inventory==null || this.shop.inventory==0) {
 						uni.showToast({
 							icon:'error',
@@ -190,6 +228,9 @@
 						})
 						return	
 					}
+					this.$emit("closePopupBuyGoods",data)
+				}
+				else{
 					this.$emit("closePopupBuyGoods",data)
 				}
 				

@@ -1,7 +1,8 @@
 <template>
 	<!-- Nihao -->
 	<view class="content">
-		<!-- <button @click="toSubPack">跳转分包-久远银海</button> -->
+		<button @click="toSubPack">跳转分包-久远银海</button>
+		<!-- <button @click="toweb">跳转web</button> -->
 	<!-- Hello -->
 		<view class="search-container">
 			<!-- <image src="/static/icon/yzyicon.svg" style="width: 224px;height: 52px;border-radius: 20%;object-fit: cover;"></image> -->
@@ -48,12 +49,11 @@
 			</view>
 		</view>
 		
-		<view style="" class="main-container" style="display: flex;justify-content: space-between;"> 
-		<!-- @click="toAppointment()" -->
-			<!-- <view class="active-card" >
+	<!-- 	<view style="" class="main-container" style="display: flex;justify-content: space-between;"> 
+			<view class="active-card" @click="toAppointment()">
 				<image src="http://images.yndzyf.com/getimage.ashx?mlszh=21946532" style="width: 32px;height: 32px;"></image>
 				<text style="font-weight: bold;">预约挂号</text>
-			</view> -->
+			</view>
 			
 			<view class="active-card" @click="toVideo1">
 				<image src="http://images.yndzyf.com/getimage.ashx?mlszh=21974134" style="width: 32px;height: 32px;"></image>
@@ -65,7 +65,7 @@
 				<text style="font-weight: bold;">{{'云找药\n'+'使用指南'}}</text>
 			</view>
 			
-		</view>
+		</view> -->
 		
 		<!-- 轮播图 -->
 
@@ -197,6 +197,11 @@
 			
 		},
 		methods: {
+			toweb(){
+				uni.navigateTo({
+					url:'/pages/outer_webview/outer_webview2'
+				})
+			},
 			toVideo1(){
 				uni.navigateTo({
 					url:'/pages/video_page/video_page?src='+encodeURIComponent(JSON.stringify("https://appletservice.dyb.yn.cn/jkkp.mp4"))
@@ -263,9 +268,9 @@
 				if(i==2){
 					
 					var src= 'https://eca1adb7636e0fe5dc2895c2318b65e2.v.smtcdns.com/om.tc.qq.com/Af3CDF-hSwPF66LzjQoACa9tUDafKVbukLNaxG7ONCzk/B_JxNyiJmktHRgresXhfyMelgW8UCu677gtCk0UpllLP1NXwzgrLud5EhnUFs-ktvh/svp_50001/szg_1891_50001_0bf2fqabwaaabuapdgfuq5pvclgddmwaag2a.f632.mp4?sdtfrom=v1104&guid=1361c0d17440cc9d&vkey=CB8D01EB1D223FF0AF6C3AE537727079834E98052E1A339F3BB39B5AB4ACE8154377DA709626FB7F9334A7D1BBBCD699D4D0168B96CFD3C3F069E2DDCCF09D20D23890892B2429EBE6BCCDDD744329DA484C696480267431EEF574BB768EEFC104C3E32AE0C7B2EB670046C14CD0C7E42D0CCB475009CAA90AD90098E868C9157AEADE61117EDE7EC1D44FEA7125B18E7258FF2891623F996944EAD78002EA947D51BC901CB8E86E'
-					uni.navigateTo({
-						url:'/pages/video_page/video_page?src='+encodeURIComponent(JSON.stringify(src))
-					})
+					// uni.navigateTo({
+					// 	url:'/pages/video_page/video_page?src='+encodeURIComponent(JSON.stringify(src))
+					// })
 				}
 				
 			},	
@@ -436,9 +441,9 @@
 				const data = {
 					businessUnitId:'1002',
 					openid: uni.getStorageSync("openid"),
-					new_main_order_id : "new_main_order_id7", //新生成的退单主订单号
-					out_order_id: "202308177097745236538425344", //要退款的商户订单号
-					wxpay_order_id: "4200001899202308176926895406",//要退款的微信订单号
+					new_main_order_id : "dss退款单1", //新生成的退单主订单号
+					out_order_id: "202312127140223322445832192", //要退款的商户订单号
+					wxpay_order_id: "4200002111202312121807482724",//要退款的微信订单号
 				};
 				try {
 					const response = await request('yzy_app', url, method, data);
@@ -465,10 +470,10 @@
 				const url = '/api/example/testRequestRefund';
 				const method = 'POST'; 
 				const data = {
-					businessUnitId:'1002',
+					businessUnitId:'80-AG01',
 					openid: uni.getStorageSync("openid"),
-					origin_out_order_id : "202308177097745236538425344", //原商户订单号
-					out_order_id: "202308257100739736688144384", //商户订单号
+					origin_out_order_id : "202312127140223322445832192", //原商户订单号
+					out_order_id: "202312127140243403963117568", //商户订单号
 				};
 				try {
 					const response = await request('yzy_app', url, method, data);

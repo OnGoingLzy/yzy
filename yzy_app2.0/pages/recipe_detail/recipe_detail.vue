@@ -107,6 +107,7 @@
 							"imgLszh":this.GoodsSettlementInfo.goodsImg,
 							"manufacturer": this.GoodsSettlementInfo.manufacturer,
 							"sellUnit":this.GoodsSettlementInfo.sellUnit,
+							"healthInsuranceFlag": this.GoodsSettlementInfo.healthInsuranceFlag,
 							},
 						],
 					},

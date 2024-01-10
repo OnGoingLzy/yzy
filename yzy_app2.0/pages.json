@@ -552,10 +552,26 @@
             ],
 			"plugins": {
 			  "yh-pay-plugin": {
-			    "version": "1.0.2",
+			    "version": "1.0.4",
 			    "provider": "wxf807b2271d017cf8"
 			  }
 			}
+			
+		},
+		{
+			"root": "subPackage_other", //银海分包
+			"pages": [
+				
+		    {
+                    "path" : "submit_requirements/submit_requirements",
+                    "style" :                                                                                    
+                {
+                    "navigationBarTitleText": "提交需求",
+                    "enablePullDownRefresh": false
+                }
+                
+                }
+            ]
 			
 		}
 	],
@@ -571,6 +587,10 @@
 		"subPackage_yinhai/index/index": {
 			"network": "all",
 			"packages": ["subPackage_yinhai"]  
+		},
+		"subPackage_other/submit_requirements/submit_requirements": {
+			"network": "all",
+			"packages": ["subPackage_other"]  
 		}
 	},
 	// 分包结束
@@ -589,11 +609,11 @@
 				"text": "买药",
 				"iconPath": "static/tabbar/pill_png.png"
 			},
-			{
-				"pagePath": "pages/goods_order/goods_order",
-				"text": "预订药",
-				"iconPath": "static/tabbar/goods_order.png"
-			},
+			// {
+			// 	"pagePath": "pages/goods_order/goods_order",
+			// 	"text": "预订药",
+			// 	"iconPath": "static/tabbar/goods_order.png"
+			// },
 			{
 				"pagePath": "pages/category/category",
 				"text": "分类",

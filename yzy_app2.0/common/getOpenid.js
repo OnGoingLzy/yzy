@@ -31,13 +31,17 @@ export default {
 			const url = '/api/Example/getOpenid';
 			const method = 'POST'; 
 			const data = {
-				js_code: this.authCode,
+				js_code: this.code,
 				secret: ""
 			};
 			try {
 				const response = await request('yzy_app', url, method, data);	//统一格式：{"data":{}, "flag":99, "result":"成功"}
+				console.log(response)
 				if(response.code == 99){
-					uni.setStorageSync("openid", response.data.openid)
+					if(response.data.openid!==null && response.data.openid!==''){
+						uni.setStorageSync("openid", response.data.openid)
+					}
+					
 					this.checkUserExist(response.data.openid,sharerPhone)
 					
 				}

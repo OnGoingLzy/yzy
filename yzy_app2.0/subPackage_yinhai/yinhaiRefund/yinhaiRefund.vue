@@ -28,6 +28,8 @@
 			return {
 				payOver: false,
 				main_order_id:null,
+				pollingInterval: 5000,
+				pollingTimer: null, 
 			}
 		},
 		onLoad: function (option) {
@@ -38,7 +40,24 @@
 			}
 			
 		},
+		onShow() {
+			if(this.main_order_id){
+				this.queryOrder(this.main_order_id,'退款');
+				this.startPolling(this.main_order_id)
+			}
+			
+		},
 		methods: {
+			goToBuy(){
+				uni.reLaunch({
+					url: '/pages/index/index',
+				})
+			},
+			goToOrder(){
+				uni.redirectTo({
+					url: '/pages/user_order/user_order?num=test4',
+				})
+			},
 			async RequestRefund(){
 				var that= this
 				const url = '/api/Trade/yinHaiRefund';
@@ -55,9 +74,9 @@
 						uni.login({
 						    success: (res) => {
 						       plugin.init({
-						           url: "https://zhuguangcao.mynatapp.cc/yy", // 服务器接口地址
+						           url: "https://ynyb.yinhaiyun.com/utsp-api", // 服务器接口地址
 						           dppSyscode: response.data.dppSyscode, // 支付平台系统编号
-						           dsmpSyscode: '1002100022', // 银医平台系统编号
+						           dsmpSyscode: '1002100005', // 银医平台系统编号
 						           authCode: res.code ,// 用户登录凭证
 						       	   chnlAppId: 'wxe7c826a1a5e00055',
 						       	acssToken: response.data.acssToken
@@ -100,6 +119,7 @@
 				}).catch( err =>{
 					console.log(`err:${JSON.stringify(err)}`)
 					that.queryOrder(that.main_order_id,"退款")
+					that.stopPolling()
 					uni.navigateBack()
 				})
 				
@@ -172,9 +192,62 @@
 				try {
 					const response = await request('yzy_app', url, method, data);		//统一格式：{"data":{}, "flag":99, "result":"成功"}
 					console.log(response)
+					if(response.code==99){
+						if(response.data=='5'){
+							this.payOver=true
+							this.stopPolling()
+							console.log("退款成功")
+							uni.hideLoading()
+							// if(response.data.operateId!=="0"){
+							// 	this.uploadOrderToZhyf(response.msg, response.data.operateId);
+							// }
+						}
+					}
 				} catch (error) {
 					console.log(error);
 				}
+			},
+			pollingMethod(orderId1) {
+			 uni.showLoading({
+				title:"查询中..."
+			 })
+			
+						 
+			  var orderId = this.main_order_id
+			  if(orderId1){
+				  orderId=orderId1
+			  }
+			  this.queryOrder(orderId,'退款');
+			  this.startPolling(orderId);
+			},
+						
+					
+			startPolling(orderId) {
+			
+				uni.showLoading({
+					title:"查询中..."
+				})
+					
+			  if (this.pollingTimer) {
+			    clearTimeout(this.pollingTimer);
+			    this.pollingTimer = null;
+			  }
+			   
+			  
+						
+			  this.pollingTimer = setTimeout(() => {
+			    this.pollingMethod(orderId);
+			  }, this.pollingInterval);
+			},
+						
+			// 停止轮询
+			stopPolling() {
+			  // 清除定时器
+			  if (this.pollingTimer) {
+			    clearTimeout(this.pollingTimer);
+			    this.pollingTimer = null;
+			  }
+			  uni.hideLoading()
 			},
 		}
 	}

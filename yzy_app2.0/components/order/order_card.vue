@@ -34,11 +34,15 @@
 					<!-- 按钮 -->
 					<view style="padding-right: 14px;;display: flex;justify-content: flex-end;"
 						v-if="order.status == '待付款' && order.cash_url=='无'">
+						<button class="mini-btn" type="warn" size="mini" style="margin: initial;border-radius: 50px;margin-right: 20px;"
+							@click="showCancelModal()" :disabled="!validCancel">取消</button>
 						<button class="mini-btn" type="primary" size="mini" style="margin: initial;border-radius: 50px;"
 							@click="testExistsPrePayOrderWxPay">付款</button>
 					</view>
 					<view style="padding-right: 14px;;display: flex;justify-content: flex-end;"
 						v-if="order.status == '待付款' && order.cash_url!=='无'">
+						<button class="mini-btn" type="warn" size="mini" style="margin: initial;border-radius: 50px;margin-right: 20px;"
+							@click="showCancelModal()" :disabled="!validCancel">取消</button>
 						<button class="mini-btn" type="primary" size="mini" style="margin: initial;border-radius: 50px;"
 							@click="OpenYhPay">付款</button>
 					</view>
@@ -95,7 +99,7 @@
 								<text class="label-word">总价：</text>
 							</view>
 							<view class="value">
-								<text style="font-size: 16px;font-weight: bold; color: #ff4006;">{{ '￥' + order.totalPrice }}</text>
+								<text style="font-size: 16px;font-weight: bold; color: #ff4006;">{{ '￥' + order.sumPrice }}</text>
 							</view>
 						</view>
 						<view class="form-item" v-if="order.status=='已取消' || order.outerReturnedResult!='NO'">
@@ -220,6 +224,7 @@
 		},
 		data() {
 			return {
+				validCancel: true,
 				checkboxValue: 0,
 				checkboxRange:[
 					{"value": 0, "text": "请选择"}
@@ -269,6 +274,81 @@
 
 		},
 		methods: {
+			showCancelModal(){
+				var that = this
+				uni.showModal({
+					title: '取消订单',
+					content: '是否取消订单?',
+					success: function (res) {
+						if (res.confirm) {
+							that.cancelOrder()
+							console.log('用户点击确定');
+						} else if (res.cancel) {
+							console.log('用户点击取消');
+							return
+						}
+					}
+				});
+			},
+			async cancelOrder(){
+				
+				var that = this
+				
+				
+				uni.showLoading({
+					title:'取消中...'
+				})
+				
+				const url = '/api/trade/cancelOrder';
+				const method = 'POST';
+				const data = {
+					openid: uni.getStorageSync("openid"),
+					main_order_id: this.order.main_order_id,
+				};
+				try {
+					const response = await request('yzy_app', url, method, data);
+					console.log(response); //统一格式：{"data":{}, "flag":99, "result":"成功"}
+					if (response.code == 99) {
+						
+						if(response.data.flag== 99){
+							uni.showToast({
+								icon: 'none',
+								title: response.data.sm,
+								mask:true
+							})
+							that.order.status = "已过期"
+							console.log(this.order)
+							
+							setTimeout(function(){
+								that.$emit("userCancelOrder")
+							},1500)
+							
+						}else{
+							uni.showToast({
+								icon: 'none',
+								title: response.data.sm
+							})
+							this.validCancel=true
+							uni.hideLoading()
+						}
+						
+						
+					} else {
+						uni.showToast({
+							icon: 'none',
+							title: response.msg
+						})
+						uni.hideLoading()
+					}
+					
+				} catch (error) {
+					console.log(error);
+					uni.showToast({
+						icon: 'none',
+						title: '服务器出错了'
+					})
+				}
+			},
 			toPurchasedGoodsDetails(goods){
 				uni.navigateTo({
 					url:'/pages/purchased_goods_details/purchased_goods_details?goods='+encodeURIComponent(JSON.stringify(goods))
@@ -482,7 +562,7 @@
 						const returnresult = JSON.parse(response.data);
 
 						//获取上传退货申请到门店的参数 20231127注释，测试时不要上传到智慧药房
-						//this.getJsonZhyfOrderReturned(returnresult.main_order_id, returnresult.operateId);
+						this.getJsonZhyfOrderReturned(returnresult.main_order_id, returnresult.operateId);
 						uni.hideLoading()
 					} else {
 						uni.hideLoading();
@@ -607,6 +687,7 @@
 					url:'/subPackage_yinhai/yinhaiRefund/yinhaiRefund?main_order_id='+encodeURIComponent(JSON.stringify(main_order_id))
 				})
 			},
+			
 			//测试支付已存在的未支付订单
 			async testExistsPrePayOrderWxPay() {
 				const url = '/api/example/testExistsPrePayOrderWxPay';

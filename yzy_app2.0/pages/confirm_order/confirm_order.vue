@@ -56,7 +56,7 @@
 				</view>
 			</view>
 		</view>
-		<view class="shipping-fee-card card-shadow" v-if="selectPayValue=='微信医保支付'">
+		<!-- <view class="shipping-fee-card card-shadow" v-if="selectPayValue=='微信医保支付'">
 			<view class="select-person-firstline">
 				<view class="select-person-title">
 					<text class="uni-title uni-common-pl memo">选择用药人：</text>
@@ -79,7 +79,7 @@
 				</view>
 			</view>
 			
-		</view>
+		</view> -->
 		<view class="shipping-fee-card card-shadow">
 			<view class="shipping-fee-title" style="display: flex; align-items: center;">
 				<view class="uni-title uni-common-pl memo">支付方式：</view>
@@ -281,7 +281,7 @@
 						} else{
 							this.selectPersonIndex = null;
 							this.selectPersonId = null;
-							uni.$showMsg("请选择'本人'作为用药人!",3000)
+							//uni.$showMsg("请选择'本人'作为用药人!",3000)
 						}
 					}
 				}
@@ -325,10 +325,13 @@
 								this.selectPersonIndex = index;
 								this.selectPersonId = this.persons[index].id;
 							} else if (this.persons.length > 0) {
-								// 如果未找到 "本人"，但 persons 数组不为空，则默认选择第一个
-								// this.selectPersonIndex = 0;
-								// this.selectPersonId = this.persons[0].id;
+								// 如果未找到 "本人"，但 persons 数组不为空，则设空
+								this.selectPersonIndex = null;
+								this.selectPersonId = null;
 							}
+						}else{
+							this.selectPersonIndex = null;
+							this.selectPersonId = null;
 						}
 						
 						this.checkPayTypeChange()
@@ -448,6 +451,16 @@
 			},
 			// 提交订单
 			submitOrder() {
+				var that = this
+				if(this.selectPersonIndex == null && this.selectPayValue=='微信医保支付')
+				{
+					uni.$showMsg("医保支付需要添加关系为'本人'的用药人",1500)
+					setTimeout(function(){
+						that.checkPerson()
+					},1500)
+					
+					return
+				}
 				
 				uni.requestSubscribeMessage({
 					//此处填写申请模板的模板ID
@@ -512,85 +525,85 @@
 						console.log(JSON.stringify(realTimePriceArray));
 						console.log(JSON.stringify(this.shops[0]));
 						
-						// for(let drug of this.shops[0].drugs) {
-						// 	let match = realTimePriceArray.find(item => item.goodsId === drug.drugId && item
-						// 		.shopId === this.shops[0]
-						// 		.shopId);
-						// 	if (match) {
-						// 		if (drug.num <= match.inventory && drug.price === match.price) {
-						// 			console.log('购买库存和价格一致，无需同步，drugId: ' + drug.drugId);
-						// 			this.priceMatch = true;
-						// 			this.canNext = true;
-						// 		} else {
-						// 			this.priceMatch = false;
-						// 			this.canNext = true;
-						// 		}
-						// 	} else {
-						// 		this.canNext = false;
-						// 	}
-						// 	//如果完全没有匹配上，则不允许再继续支付
-						// 	if (this.canNext === false) {
-						// 		uni.$showMsg("未查询到所购买商品的价格和库存信息", 3000);
-						// 		this.validSubmit=true
-						// 		return;
-						// 	}
-						// 	//如果只是部分商品没有匹配上，那需要提示用户，并进行更新库存和价格
-						// 	if (this.priceMatch === false) {
-						// 		var that = this;
-						// 		//TODO：同步云找药库存价格表
-						// 		let match = realTimePriceArray.find(item => item.goodsId === drug
-						// 			.drugId && item
-						// 			.shopId === this.shops[0].shopId);
-						// 		if (match) {
-						// 			//(调低)如果云找药价格高于智慧药房价格，则提示用户价格高于后台数据
-						// 			//match是智慧药房的价格和库存
-						// 			//drug是云找药的价格和购买数量
-						// 			if (drug.price >= match.price) {
-						// 				this.allMatch = false;
-						// 				drug.price = match.price;
-						// 				console.log('(调低)价格同步：drugId: ' + drug.drugId);
-						// 			}
-						// 			//(调高)如果云找药价格低于智慧药房价格，则提示用户价格低于后台数据，退出
-						// 			//match是智慧药房的价格和库存
-						// 			//drug是云找药的价格和购买数量
-						// 			else if (drug.price < match.price){
-						// 				this.allMatch = false;
-						// 				console.log('(调高)价格同步：drugId: ' + drug.drugId);
-						// 				uni.showToast({
-						// 					duration: 5000,
-						// 					mask: true,
-						// 					title: '请注意，当前价格低于后台价格，请重新选择商品购买',
-						// 					icon: 'none'
-						// 				});
-						// 				that.canNext = false;
-						// 				setTimeout(function() {
-						// 					uni.reLaunch({
-						// 						url:'/pages/shopping_cart/shopping_cart'
-						// 					})
-						// 				}, 5000);
-						// 				this.updatePriceAndInventoryToYzy(realTimePriceArray);
-						// 				this.validSubmit=true
-						// 				return;
-						// 			}
-						// 			if (drug.num > match.inventory) {
-						// 				this.allMatch = false;
-						// 				drug.num = match.inventory;
-						// 				console.log('购买数量同步：drugId: ' + drug.drugId);
-						// 			}
-						// 		} 
-						// 		uni.$showMsg("请留意，因后台数据变化，价格和数量存在变动", 3000);
-						// 		this.calcTotalPrice();
-						// 	}
-						// }
-						// //如果不能下一步，一定要进行控制，否则用户会重复提交
-						// if(this.allMatch === false || this.canNext === false){
-						// 	//在这里对数据进行保存，即将智慧药房返回回来的数据重新保存到云找药
-						// 	this.updatePriceAndInventoryToYzy(realTimePriceArray);
-						// 	this.validSubmit=true
-						// 	return;
-						// }
-						this.priceMatch  = true
-						this.canNext = true
+						for(let drug of this.shops[0].drugs) {
+							let match = realTimePriceArray.find(item => item.goodsId === drug.drugId && item
+								.shopId === this.shops[0]
+								.shopId);
+							if (match) {
+								if (drug.num <= match.inventory && drug.price === match.price) {
+									console.log('购买库存和价格一致，无需同步，drugId: ' + drug.drugId);
+									this.priceMatch = true;
+									this.canNext = true;
+								} else {
+									this.priceMatch = false;
+									this.canNext = true;
+								}
+							} else {
+								this.canNext = false;
+							}
+							//如果完全没有匹配上，则不允许再继续支付
+							if (this.canNext === false) {
+								uni.$showMsg("未查询到所购买商品的价格和库存信息", 3000);
+								this.validSubmit=true
+								return;
+							}
+							//如果只是部分商品没有匹配上，那需要提示用户，并进行更新库存和价格
+							if (this.priceMatch === false) {
+								var that = this;
+								//TODO：同步云找药库存价格表
+								let match = realTimePriceArray.find(item => item.goodsId === drug
+									.drugId && item
+									.shopId === this.shops[0].shopId);
+								if (match) {
+									//(调低)如果云找药价格高于智慧药房价格，则提示用户价格高于后台数据
+									//match是智慧药房的价格和库存
+									//drug是云找药的价格和购买数量
+									if (drug.price >= match.price) {
+										this.allMatch = false;
+										drug.price = match.price;
+										console.log('(调低)价格同步：drugId: ' + drug.drugId);
+									}
+									//(调高)如果云找药价格低于智慧药房价格，则提示用户价格低于后台数据，退出
+									//match是智慧药房的价格和库存
+									//drug是云找药的价格和购买数量
+									else if (drug.price < match.price){
+										this.allMatch = false;
+										console.log('(调高)价格同步：drugId: ' + drug.drugId);
+										uni.showToast({
+											duration: 5000,
+											mask: true,
+											title: '请注意，当前价格低于后台价格，请重新选择商品购买',
+											icon: 'none'
+										});
+										that.canNext = false;
+										setTimeout(function() {
+											uni.reLaunch({
+												url:'/pages/shopping_cart/shopping_cart'
+											})
+										}, 5000);
+										this.updatePriceAndInventoryToYzy(realTimePriceArray);
+										this.validSubmit=true
+										return;
+									}
+									if (drug.num > match.inventory) {
+										this.allMatch = false;
+										drug.num = match.inventory;
+										console.log('购买数量同步：drugId: ' + drug.drugId);
+									}
+								} 
+								uni.$showMsg("请留意，因后台数据变化，价格和数量存在变动", 3000);
+								this.calcTotalPrice();
+							}
+						}
+						//如果不能下一步，一定要进行控制，否则用户会重复提交
+						if(this.allMatch === false || this.canNext === false){
+							//在这里对数据进行保存，即将智慧药房返回回来的数据重新保存到云找药
+							this.updatePriceAndInventoryToYzy(realTimePriceArray);
+							this.validSubmit=true
+							return;
+						}
+						// this.priceMatch  = true
+						// this.canNext = true
 						if (this.priceMatch === true && this.canNext === true) {
 							
 							if(this.selectPayValue=='微信支付'){
@@ -995,12 +1008,14 @@
 			const item = JSON.parse(decodeURIComponent(option.drug));
 			console.log(item);
 			this.shops = item;
-			const allHaveYFlag = this.shops[0].drugs.every(obj => obj.healthInsuranceFlag == 'y');
+			const hasYFlag = this.shops[0].drugs.some(obj => obj.healthInsuranceFlag == 'y');
+
 			
-			if (allHaveYFlag) {
+			if (hasYFlag) {
 				//是否可医保支付
 			    this.MedicarePaymentFlag = true
 				this.selectPayRange = [{"value": '微信支付', "text": "微信支付"},{"value": '微信医保支付', "text": "医保支付"}]
+				//this.selectPayRange = [{"value": '微信支付', "text": "微信支付"}]
 			} else {
 			    this.MedicarePaymentFlag = false
 			}

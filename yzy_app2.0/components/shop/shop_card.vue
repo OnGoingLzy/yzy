@@ -34,13 +34,13 @@
 			</view>
 			<view class="right-container" @click="toGoodsDetails(goods,shop)">
 				<view style="text-align: right;">
-					<text v-text="'￥'+shop.price" class="goods-price"></text>
+					<text v-text="(shop.price==0)?'详询门店':'￥'+shop.price" class="goods-price"></text>
 				</view>
 				<view style="justify-content: flex-end;display: flex;">
-					<view><text style="color: #8b8b8b;">库存: </text></view>
+					<view><text style="color: #8b8b8b;font-size: 23rpx;" v-text="shop.inventory>0?'库存: ':'无库存'"></text></view>
 					<view style="width: 40px;">
-						<text v-text="shop.inventory==null ? 0:shop.inventory+ '' +goods.sellUnit" style="color: #c01a04;"></text>
-					
+						<text v-if="shop.reservationFlag!=='y'||shop.inventory>0" v-text="shop.inventory+ '' +goods.sellUnit" style="color: #c01a04;font-size: 23rpx;"></text>
+						<text v-if="(shop.reservationFlag=='y'&&shop.inventory==0)" v-text="shop.inventory>0 ?shop.inventory+ '' +goods.sellUnit:'可预订'" style="color: #4b9810;font-size: 23rpx;"></text>
 					</view>
 					
 				</view>

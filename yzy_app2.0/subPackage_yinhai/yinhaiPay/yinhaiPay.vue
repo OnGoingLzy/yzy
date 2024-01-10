@@ -22,6 +22,7 @@
 
 <script>
 	import request from '@/common/api/request.js'
+		import requestZhyf from '@/common/api/requestZhyf.js'
 	const plugin = requirePlugin('yh-pay-plugin')
 	export default {
 		data() {
@@ -44,9 +45,13 @@
 		    this.stopPolling();
 		  },
 		onShow(){
-			if(this.main_order_id){
-				this.startPolling()
-			}  
+			uni.showLoading({
+				title:"loading..."
+			})
+			 
+		},
+		onBackPress() {
+			this.queryOrder(this.main_order_id,'付款')
 		},
 		onHide() {
 			this.stopPolling()
@@ -65,9 +70,9 @@
 				uni.login({
 				    success: (res) => {
 				        plugin.init({
-				            url: "https://zhuguangcao.mynatapp.cc/yy", // 服务器接口地址
+				            url: "https://ynyb.yinhaiyun.com/utsp-api", // 服务器接口地址
 				            dppSyscode: that.createOrderParam.dppSyscode, // 支付平台系统编号
-				            dsmpSyscode: '1002100022', // 银医平台系统编号
+				            dsmpSyscode: '1002100005', // 银医平台系统编号
 				            authCode: res.code ,// 用户登录凭证
 							chnlAppId: 'wxe7c826a1a5e00055',
 							acssToken: that.createOrderParam.acssToken
@@ -120,9 +125,9 @@
 						uni.login({
 						    success: (res) => {
 						        plugin.init({
-						            url: "https://zhuguangcao.mynatapp.cc/yy", // 服务器接口地址
+						            url: "https://ynyb.yinhaiyun.com/utsp-api", // 服务器接口地址
 						            dppSyscode: response.data.dppSyscode, // 支付平台系统编号
-						            dsmpSyscode: '1002100022', // 银医平台系统编号
+						            dsmpSyscode: '1002100005', // 银医平台系统编号
 						            authCode: res.code ,// 用户登录凭证
 									chnlAppId: 'wxe7c826a1a5e00055',
 									acssToken: response.data.acssToken
@@ -139,7 +144,10 @@
 						    },
 						})
 					} else {
-						
+						uni.showToast({
+							title:response.msg,
+							icon:"none"
+						})
 					}
 				} catch (error) {
 					console.log(error);
@@ -297,6 +305,7 @@
 				})
 			},
 			async queryOrder(main_order_id,type){
+				var that =this
 				const url = '/api/Trade/requestYinhaiQueryOrder';
 				const method = 'POST'; 
 				const data = {
@@ -307,14 +316,37 @@
 					const response = await request('yzy_app', url, method, data);		//统一格式：{"data":{}, "flag":99, "result":"成功"}
 					console.log(response)
 					if(response.code==99){
-						if(response.data=='2'){
+						if(response.data.status=='2'){
 							this.payOver=true
 							this.stopPolling()
 							console.log("支付成功")
 							uni.hideLoading()
+							if(response.data.operateId!=="0"){
+								that.uploadOrderToZhyf(response.msg, response.data.operateId);
+							}
 						}
 					}
 					
+				} catch (error) {
+					console.log(error);
+				}
+			},
+			async uploadOrderToZhyf(msg, operateId) {
+				const msgJson = JSON.parse(msg);
+				msgJson.operateId = operateId;
+				console.log(JSON.stringify(msgJson));
+				const url = '/api/Zhyf/makeAccountForOuterOrder';
+				const method = 'POST';
+				const data = JSON.stringify(msgJson);
+				try {
+					console.log(data);
+					const response = await requestZhyf('yzy_app', url, method, data);
+					console.log(response); //统一格式：{"data":{}, "flag":99, "result":"成功"}
+					if (response.code == 99) {
+						console.log("销售记录上传智慧药房成功！");
+					} else {
+			
+					}
 				} catch (error) {
 					console.log(error);
 				}
